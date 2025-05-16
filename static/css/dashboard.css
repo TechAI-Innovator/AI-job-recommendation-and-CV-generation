@@ -1,0 +1,114 @@
+body {
+    background: url('/static/images/hero-bg.jpg') no-repeat center center fixed;
+    background-size: cover;
+  }
+
+  .job-container {
+    flex-direction: column;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    padding: 40px 20px;
+  }
+  .job-container h1 {
+  font-weight: bold;
+  background-color: rgba(0, 74, 173, 0.6);
+  color: white;
+  border-radius: 5px;
+  padding: 5px 15px;
+  display: inline-block;
+  animation: WelcmMsg 5s ease-in-out infinite alternate;
+  position: relative;
+}
+
+@keyframes WelcmMsg {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(30px); /* move right */
+  }
+}
+
+  
+  .job-card {
+    background: white;
+    width: 320px;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .job-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+  }
+  
+  .job-header h2 {
+    margin: 0;
+    font-size: 1.4em;
+    color: #004AAD;
+  }
+  
+  .company {
+    font-style: italic;
+    color: #666;
+  }
+  
+  .job-meta p {
+    margin: 5px 0;
+  }
+  
+  .description {
+    margin: 15px 0;
+    font-size: 0.95em;
+  }
+  
+  .job-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  
+  .apply-btn,
+  .cv-btn {
+    padding: 10px;
+    text-align: center;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    color: white;
+    transition: background 0.3s;
+  }
+  
+  .apply-btn {
+    background: #28a745;
+  }
+  
+  .apply-btn:hover {
+    background: #218838;
+  }
+  
+  .cv-btn {
+    background: #007bff;
+  }
+  
+  .cv-btn:hover {
+    background: #0069d9;
+  }
+  
+
+
+  @media screen and (max-width: 400px) {
+    .job-container {
+      padding: 12px 16px;
+      align-items: flex-start;
+    }
+    .job-card {
+      flex-direction: column;
+      max-width: fit-content;
+    }
+  }

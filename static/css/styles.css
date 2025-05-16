@@ -1,0 +1,100 @@
+html, body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: #f4f4f4;
+    color: #333;
+    overflow-x: hidden;
+}
+
+/* header and links*/
+.header {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 16px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 1000;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.logo img {
+  height: auto;
+  width: 120px;
+  background-position: center;
+  background-size: contain;
+  transition: transform 0.3s ease;
+}
+
+.logo:hover img {
+  transform: scale(1.05);
+}
+  
+  .header-nav {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+  
+  .nav-link {
+    color: black;
+    text-decoration: none;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  
+  .nav-link:hover {
+    background-color: #f0f0f0;
+    color: #007BFF;
+  }
+
+  .nav-link i {
+    font-size: 1.3rem;
+  }
+
+@media screen and (max-width: 400px) {
+  .header {
+    flex-direction: column;
+    padding: 12px 16px;
+  }
+}
+  
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 20px;
+    background: #333;
+    color: white;
+}
+
+.flash-message {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    font-weight: bold;
+}
+.success, .login-success, .register-success, .password-success { background-color: lightgreen; color: green; }
+.error, .login-error, .register-error { background-color: lightcoral; color: darkred; }
+.info {background-color: lightblue; color: darkblue;}
+
+.logout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+  .message {
+    font-size: 2rem;
+    color: #333;
+    text-align: center;
+  }

@@ -1,0 +1,57 @@
+   .container {
+    max-width: 400px;
+    margin: 80px auto;
+    padding: 30px;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    text-align: center;
+  }
+  
+  h2 {
+    margin-bottom: 10px;
+    color: #333;
+  }
+  
+  .instructions {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+  }
+  
+  .token-form input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+  }
+  
+  .token-form button {
+    width: 100%;
+    padding: 10px;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .token-form button:hover {
+    background-color: #1976D2;
+  }
+  
+  .back-link {
+    margin-top: 20px;
+    font-size: 14px;
+  }
+  
+  .back-link a {
+    color: #2196F3;
+    text-decoration: underline;
+  }
+  

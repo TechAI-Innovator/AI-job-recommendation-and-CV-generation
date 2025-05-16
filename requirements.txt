@@ -1,0 +1,12 @@
+alembic
+Flask
+Flask_Login
+flask_mail
+Flask_Migrate
+itsdangerous
+langchain
+langchain_community
+langchain_groq
+python-dotenv
+SQLAlchemy
+Werkzeug

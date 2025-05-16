@@ -1,0 +1,213 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: sans-serif;
+  background: linear-gradient(45deg, #0f2027, #2c5364, #00c9ff, #92fe9d);
+  background-size: 400% 400%;
+  animation: gradientMove 5s ease infinite;
+}
+
+@keyframes gradientMove {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+} */
+
+body {
+  background: url('/static/images/profile2.png') repeat;
+  background-size: cover;
+  animation: bgScroll 80s linear infinite;
+}
+
+@keyframes bgScroll {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 100% 100%;
+  }
+}
+
+main {
+    max-width: 850px;
+    margin: 40px auto;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(12px);         /* blur the background */
+  -webkit-backdrop-filter: blur(12px);
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+    font-family: 'Segoe UI', sans-serif;
+    color: #222;
+  }
+
+
+.down-arrow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  margin: 10px;
+}
+
+.down-arrow strong span {
+  display: inline-block;
+  font-size: 32px;
+  color: #555;
+  animation: bounce 1s infinite ease-in-out;
+}
+
+.down-arrow strong span:nth-child(1) {
+  animation-delay: 0s;
+}
+.down-arrow strong span:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.down-arrow strong span:nth-child(3) {
+  animation-delay: 0.2s;
+}
+.down-arrow strong span:nth-child(4) {
+  animation-delay: 0.3s;
+}
+.down-arrow strong span:nth-child(5) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(10px);
+  }
+}
+
+
+  
+  .section {
+    margin-bottom: 40px;
+  }
+  
+  .section h2 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #004aad;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #004aad;
+    padding-bottom: 5px;
+  }
+  
+  input[type="text"],
+  input[type="email"],
+  input[type="url"],
+  input[type="file"],
+  input[type="number"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 14px;
+    margin-top: 10px;
+    margin-bottom: 18px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    background-color: #fdfdfd;
+  }
+  
+  input:focus,
+  textarea:focus,
+  select:focus {
+    border-color: #004aad;
+    box-shadow: 0 0 0 3px rgba(0, 74, 173, 0.2);
+    outline: none;
+  }
+  
+  textarea {
+    resize: vertical;
+    min-height: 90px;
+  }
+  
+  button {
+    cursor: pointer;
+  }
+  
+  .add-btn,
+  .remove-btn,
+  .parse-btn {
+    background-color: #eaf0ff;
+    border: 1px solid #d2dfff;
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-top: 8px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+  }
+  
+  .add-btn:hover {
+    background-color: #cfe0ff;
+  }
+  
+  .remove-btn:hover {
+    background-color: #ffe0e0;
+  }
+  
+  .parse-btn:hover {
+    background-color: #cfeaff;
+  }
+  
+  .submit-btn {
+    text-align: right;
+  }
+  
+  .submit-btn button, .submit-btn a {
+    background-color: #004aad;
+    color: white;
+    padding: 14px 26px;
+    font-size: 1rem;
+    font-weight: 500;
+    border: none;
+    border-radius: 10px;
+    transition: background-color 0.3s ease;
+    text-decoration: none;
+    display: inline-block; /* important for <a> */
+    box-sizing: border-box; /* ensures consistent sizing */
+    line-height: 1; /* fixes height discrepancies */
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+  }
+  
+  .submit-btn button:hover, .submit-btn a:hover  {
+    background-color: #003580;
+  }
+  
+  .hidden {
+    display: none;
+  }
+  
+  #upload-status {
+    margin-top: 10px;
+    text-align: center;
+  }
+  
+  #progress-bar {
+    width: 100%;
+    height: 12px;
+    border-radius: 6px;
+    appearance: none;
+  }
+  

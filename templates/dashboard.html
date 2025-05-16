@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+</head>
+<body>
+  <header class="header">
+    <a href="{{ url_for('dashboard') }}" class="logo">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" />
+    </a>
+    <nav class="header-nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-link">
+        <i class="fas fa-gauge"></i> Dashboard
+      </a>
+      <a href="{{ url_for('profile') }}" class="nav-link">
+        <i class="fas fa-user"></i> Profile
+      </a>
+      <a href="{{ url_for('auth.logout') }}" class="nav-link">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
+    </nav>
+  </header>
+
+  <main class="job-container">
+    <h1>Hello {{user}}, Welcome to Your Job Dashboard</h1>
+    <!-- Sample Job Card -->
+    <div class="job-card">
+      <div class="job-header">
+        <h2>Software Engineer</h2>
+        <span class="company">Google</span>
+      </div>
+      <div class="job-meta">
+        <p><strong>Location:</strong> Remote</p>
+        <p><strong>Salary:</strong> $70,000 - $100,000</p>
+        <p><strong>Job Type:</strong> Full-Time</p>
+        <p><strong>Experience Level:</strong> Mid-Level</p>
+        <p><strong>Skills Required:</strong> Python, Flask, PostgreSQL</p>
+        <p><strong>Posted:</strong> 3 days ago</p>
+        <p><strong>Deadline:</strong> May 1, 2025</p>
+      </div>
+      <p class="description">Join our backend team to build scalable services using Python and PostgreSQL.</p>
+      <div class="job-actions">
+        <a href="https://joblink.com" class="apply-btn" target="_blank">Apply Now</a>
+        <a href="{{ url_for('profile', job_id=123) }}" class="cv-btn">Download Tailored CV</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Job Finder. All Rights Reserved.</p>
+</footer>
+</body>
+</html>

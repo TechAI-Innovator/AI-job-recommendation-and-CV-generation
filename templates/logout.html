@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="refresh" content="2;url={{ url_for('index') }}#login">
+  <title>Logging Out...</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+    <link rel="icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/png">
+</head>
+
+<body class="logout">
+  <div class="message">
+    👋 Bye, {{ username if username else 'User' }}!<br>
+    Redirecting you to login...
+  </div>
+</body>
+</html>

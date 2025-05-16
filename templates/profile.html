@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Profile</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+<header class="header">
+    <a href="{{ url_for('dashboard') }}" class="logo">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" />
+    </a>
+    <nav class="header-nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-link">
+        <i class="fas fa-gauge"></i> Dashboard
+      </a>
+      <a href="{{ url_for('profile') }}" class="nav-link">
+        <i class="fas fa-user"></i> Profile
+      </a>
+      <a href="{{ url_for('auth.logout') }}" class="nav-link">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
+    </nav>
+  </header>
+  
+    <main>
+      <!-- CV Upload & Parsing -->
+      {% if show_upload_section %}
+      <section class="section" id="upload-section">
+        <h2><i class="fas fa-file-upload fa-beat"></i> Upload Your CV</h2>
+        <p>You can upload your CV to auto-fill your profile. This may take a few seconds. Only a <strong>pdf</strong> file or <strong>docx</strong> file is acceptable</p>
+        
+        <form id="cv-upload-form" enctype="multipart/form-data">
+          <input type="file" name="cv_file" id="cv_file" accept=".pdf,.docx" required>
+          <button type="submit" class="parse-btn">Upload & Extract</button>
+
+          <div id="upload-status" class="hidden">
+            <p>Extracting details from CV... Please wait.</p>
+            <progress id="progress-bar" value="0" max="100"></progress>
+          </div>
+        </form>
+      </section>
+      {% endif %}
+
+      <div class="down-arrow">
+        <strong>
+          <span>⬇️</span>
+          <span>⬇️</span>
+          <span>⬇️</span>
+          <span>⬇️</span>
+          <span>⬇️</span>
+        </strong>
+      </div>
+
+
+      <form action="{{ url_for('profile') }}" method="POST" enctype="multipart/form-data" class="profile-form">
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                        <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="profile-heading">
+          <h1><i class="fas fa-user-circle fa-beat"></i> Your Profile</h1>
+        </div>
+
+        <!-- Personal Info -->
+        <section class="section">
+          <h2><i class="fas fa-id-card"></i> Personal Information</h2>
+          <input type="text" name="first_name" value="{{ user_data.first_name or '' }}" placeholder="First Name" required>
+          <input type="text" name="middle_name" value="{{ user_data.middle_name or '' }}" placeholder="Middle Name" required>
+          <input type="text" name="surname" value="{{ user_data.surname or '' }}" placeholder="Surname" required>
+          <input type="email" name="email" value="{{ user_data.email or '' }}" placeholder="Email" required>
+          <input type="text" name="phone" value="{{ user_data.phone or '' }}" placeholder="Phone Number" required>
+          <input type="text" name="location" value="{{ user_data.location or '' }}" placeholder="Location" required>
+          <input type="url" name="linkedin" value="{{ user_data.linkedin or '' }}" placeholder="LinkedIn URL">
+          <input type="url" name="github" value="{{ user_data.github or '' }}" placeholder="GitHub URL">
+          <textarea name="summary" placeholder="Professional Summary" required>{{ user_data.summary or '' }}</textarea>
+
+        </section>
+  
+        <!-- Education -->
+        <section class="section">
+          <h2><i class="fas fa-graduation-cap fa-beat"></i> Education</h2>
+          <div id="education-section">
+            {% for edu in user_data.education %}
+            <div class="education-entry">
+              <input type="text" name="degree[]" value="{{ edu.degree }}" placeholder="Degree">
+              <input type="text" name="institution[]" value="{{ edu.institution }}" placeholder="Institution">
+              <input type="text" name="edu_year[]" value="{{ edu.year }}" placeholder="Year">
+              <textarea name="edu_description[]">{{ edu.description }}</textarea>
+              <button type="button" class="remove-btn" onclick="removeSection(this)">Remove</button>
+            </div>
+            {% endfor %}
+            {% if not user_data.education %}
+            <div class="education-entry">
+              <input type="text" name="degree[]" placeholder="Degree">
+              <input type="text" name="institution[]" placeholder="Institution">
+              <input type="text" name="edu_year[]" placeholder="Year">
+              <textarea name="edu_description[]" placeholder="Description"></textarea>
+              <button type="button" class="remove-btn" onclick="removeSection(this)">Remove</button>
+            </div>
+            {% endif %}
+          </div>
+
+          <button type="button" class="add-btn" onclick="addEducation()">Add More Education</button>
+        </section>
+  
+        <!-- Experience -->
+        <section class="section">
+          <h2><i class="fas fa-briefcase fa-beat"></i> Experience</h2>
+          <div id="experience-section">
+            {% for exp in user_data.experience %}
+            <div class="experience-entry">
+              <input type="text" name="job_title[]" value="{{ exp.title }}" placeholder="Degree">
+              <input type="text" name="company[]" value="{{ exp.company }}" placeholder="Institution">
+              <input type="text" name="duration[]" value="{{ exp.duration }}" placeholder="Year">
+              <textarea name="exp_description[]">{{ exp.description }}</textarea>
+              <button type="button" class="remove-btn" onclick="removeSection(this)">Remove</button>
+            </div>
+            {% endfor %}
+            {% if not user_data.experience %}
+            <div class="experience-entry">
+              <input type="text" name="job_title[]" placeholder="Job Title">
+              <input type="text" name="company[]" placeholder="Company">
+              <input type="text" name="duration[]" placeholder="Duration">
+              <textarea name="exp_description[]" placeholder="Description"></textarea>
+              <button type="button" class="remove-btn" onclick="removeSection(this)">Remove</button>
+            </div>
+            {% endif %}
+          </div>
+          <button type="button" class="add-btn" onclick="addExperience()">Add More Experience</button>
+        </section>
+
+        <!-- Skills -->
+        <section class="section">
+          <h2><i class="fas fa-tools fa-beat"></i> Skills</h2>
+          <input type="text" name="skills" value='{{ user_data.skills if user_data and user_data.skills else "" }}' placeholder="e.g. Python, React, SQL" required>
+        </section>
+        
+        <div class="down-arrow">
+          <strong>
+            <span>⬇️</span>
+            <span>⬇️</span>
+            <span>⬇️</span>
+            <span>⬇️</span>
+            <span>⬇️</span>
+          </strong>
+        </div>
+
+        <!-- Preferences -->
+        <section class="section">
+          <h2><i class="fas fa-bullseye fa-beat"></i> Job Preferences</h2>
+          <input type="text" name="preferred_titles" value='{{ user_data.preferred_titles if user_data and user_data.preferred_titles else "" }}' placeholder="Preferred Job Titles (e.g. Backend Developer)" required>
+          <input type="text" name="preferred_locations" value='{{ user_data.preferred_locations if user_data and user_data.preferred_locations else "" }}' placeholder="Preferred Locations (e.g. Remote, London)" required>
+  
+          <select name="employment_type" required>
+            <option value="" disabled {% if not user_data or not user_data.employment_type %}selected{% endif %}>Select Employment Type</option>
+            <option value="fulltime" {% if user_data and user_data.employment_type == 'fulltime' %}selected{% endif %}>Full-time</option>
+            <option value="parttime" {% if user_data and user_data.employment_type == 'parttime' %}selected{% endif %}>Part-time</option>
+            <option value="internship" {% if user_data and user_data.employment_type == 'internship' %}selected{% endif %}>Internship</option>
+            <option value="contract" {% if user_data and user_data.employment_type == 'contract' %}selected{% endif %}>Contract</option>
+          </select>
+  
+          <select name="experience_level" required>
+            <option value="" disabled {% if not user_data or not user_data.experience_level %}selected{% endif %}>Select Experience Level</option>
+            <option value="entry" {% if user_data and user_data.experience_level == 'entry' %}selected{% endif %}>Entry-level</option>
+            <option value="mid" {% if user_data and user_data.experience_level == 'mid' %}selected{% endif %}>Mid-level</option>
+            <option value="senior" {% if user_data and user_data.experience_level == 'senior' %}selected{% endif %}>Senior-level</option>
+            <option value="manager" {% if user_data and user_data.experience_level == 'manager' %}selected{% endif %}>Manager/Lead</option>
+          </select>
+  
+          <input type="number" name="min_salary" value='{{ user_data.min_salary if user_data and user_data.min_salary else "" }}' placeholder="Minimum Salary Expectation (e.g. 60000)">
+          <input type="text" name="preferred_industries" value='{{ user_data.preferred_industries if user_data and user_data.preferred_industries else "" }}' placeholder="Preferred Industries (e.g. Tech, Finance)">
+          <input type="text" name="job_keywords" value='{{ user_data.job_keywords if user_data and user_data.job_keywords else "" }}' placeholder="Keywords (e.g. Python, SQL)">
+        </section>
+  
+        <!-- Resume Section -->
+        <section class="section">
+          <h2><i class="fas fa-paperclip fa-beat"></i> Resume (Optional)</h2>
+
+          {% if user_data.resume_path %}
+          <div id="uploaded-resume-preview">
+            <p><strong>Uploaded CV:</strong> <span id="uploaded-filename">{{ user_data.resume_path.split('/')[-1] }}</span></p>
+            <button type="button" onclick="removeUploadedResume()">Remove</button>
+          </div>
+          {% else %}
+          <div id="uploaded-resume-preview" class="hidden">
+            <p><strong>Uploaded CV:</strong> <span id="uploaded-filename"></span></p>
+            <button type="button" onclick="removeUploadedResume()">Remove</button>
+          </div>
+          {% endif %}
+
+          <input type="hidden" name="resume_path" id="uploaded_cv_path" value="{{ user_data.resume_path or '' }}">
+          <input type="file" name="resume" id="resume_file" accept=".pdf,.doc,.docx" {% if user_data.resume_path %}disabled{% endif %}>
+        </section>
+
+
+  
+        <div class="submit-btn">
+            <!-- <a href="{{ url_for('dashboard') }}">Dashboard</a> -->
+            <button type="submit">Save Profile</button>
+        </div>
+      </form>
+    </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Job Finder. All Rights Reserved.</p>
+</footer>
+
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+
+</body>
+</html>

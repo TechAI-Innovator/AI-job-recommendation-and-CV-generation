@@ -1,0 +1,225 @@
+/* Hero Section */
+.hero {
+    background: url('/static/images/hero-bg.jpg') no-repeat center center/cover;
+    height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+}
+.hero-content {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 2rem;
+    border-radius: 10px;
+    animation: fadeIn 1.5s ease-in-out;
+}
+.hero h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+.hero p {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+}
+.btn-primary, .btn-secondary, .btn-tertiary {
+    width: 120px;
+    display: inline-block;
+    padding: 10px 20px;
+    background: #ff5722;
+    color: white;
+    font-size: large;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: 0.3s;
+    cursor: pointer;
+}
+.btn-primary:hover, .btn-secondary:hover, .btn-tertiary:hover {
+    background: #e64a19;
+}
+
+/* Container for Sliding Sections */
+.container {
+    display: flex;
+    width: 300%;
+    transition: transform 0.5s ease-in-out;
+    position: relative;
+    overflow: hidden;
+}
+.slide-section, .slide-section-forms {
+    width: 33.3333%;
+    flex-shrink: 0;
+    padding: 50px;
+    box-sizing: border-box;
+    position: relative;
+    background: white;
+    max-height: fit-content;
+}
+
+/* Animated Top Border */
+.slide-section::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: transparent;
+    transition: background 0.5s ease-in-out;
+}
+
+/* Different Border Colors */
+#featuresSection::before { background: #2196F3; }
+#loginSection::before { background: #4CAF50; }
+#registerSection::before { background: #673AB7; }
+
+/* Features Section */
+.features {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 50px 10px;
+    background: white;
+    border: #666 1px solid;
+    
+}
+.feature {
+    text-align: center;
+    width: 300px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: 0.3s;
+}
+.feature:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+.feature img {
+    width: 100px;
+    margin-bottom: 10px;
+    border-radius: 25px;
+}
+.feature h3 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 1.5rem;
+}
+
+/* How It Works Section */
+.how-it-works {
+    text-align: center;
+    padding: 50px 10vw;
+    background: url("/static/images/how-it-works.jpg")
+}
+.how-it-works h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: white;
+}
+.steps {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+.step {
+    width: 250px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: 0.3s;
+}
+.step:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+.step img {
+    width: 80px;
+    margin-bottom: 10px;
+}
+.step h3 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    gap: 10px;
+}
+.step p {
+    font-size: 1rem;
+    color: #666;
+}
+
+#loginSection, #registerSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    background: white;
+}
+#loginSection form, #registerSection form{
+    background: #666;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    padding: 60px 20px;  
+    border-radius: 10px 40px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#loginSection input, #registerSection input {
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+.login, .register{
+    padding: 10px;
+    background: #ff5722;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+.login:hover, .register:hover {
+    background: #e64a19;
+}
+.link-btn {
+    background: none;
+    border: none;
+    color: #ff5722;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+/* Style for links inside the login section */
+#loginSection a {
+    color: #2196F3;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease, text-decoration 0.3s ease;
+}
+
+/* Hover effect */
+#loginSection a:hover {
+    color: #1769aa;
+    text-decoration: underline;
+}
+
+@media screen and (max-width: 350px) {
+    #loginSection form, #registerSection form {
+        max-width: fit-content;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}

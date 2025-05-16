@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Finder - Homepage</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home_styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    
+    <link rel="icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/png">
+    
+    <script defer src="{{ url_for('static', filename='js/script.js') }}"></script>
+</head>
+<body>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>Find Your Dream Job</h1>
+            <p>Unlock AI-powered job recommendations and tailored CV generation to land your dream job faster</p>
+            <div class="auth-buttons">
+                <button id="homeBtn" class="btn-tertiary">Overview</button>
+                <button id="loginBtn" class="btn-secondary">Login</button>
+                <button id="registerBtn" class="btn-primary">Sign Up</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sliding Content Wrapper -->
+    <div class="container">
+        <!-- Features & How It Works -->
+        <section class="slide-section" id="featuresSection">
+            <div class="features">
+                <div class="feature">
+                    <img src="{{ url_for('static', filename='images/web-scrapping.jpg') }}" alt="Web Scrapping">
+                    <h3>Job Websites Scrapping</h3>
+                    <p>Automatically gather and analyze job postings to match your skills.</p>
+                </div>
+                <div class="feature">
+                    <img src="{{ url_for('static', filename='images/job-search.jpg') }}" alt="Job Search">
+                    <h3>Smart Job Matching</h3>
+                    <p>We connect you with the best jobs that align with your experience and interests.</p>
+                </div>
+                <div class="feature">
+                    <img src="{{ url_for('static', filename='images/cv.jpg') }}" alt="CV Generator">
+                    <h3>Automated CV Generation</h3>
+                    <p>Create customized CVs tailored to specific job applications instantly.</p>
+                </div>
+            </div>
+            <section class="how-it-works">
+                <h2>How It Works</h2>
+                <div class="steps">
+                    <div class="step">
+                        <img src="{{ url_for('static', filename='images/signup.jpg') }}" alt="Sign Up">
+                        <h3>1. Sign Up</h3>
+                        <p>Create a free account and set up your job preferences.</p>
+                    </div>
+                    <div class="step">
+                        <img src="{{ url_for('static', filename='images/match.jpg') }}" alt="Job Matching">
+                        <h3>2. Get Matched</h3>
+                        <p>Receive AI-powered job recommendations based on your profile.</p>
+                    </div>
+                    <div class="step">
+                        <img src="{{ url_for('static', filename='images/apply.jpg') }}" alt="Apply">
+                        <h3>3. Apply Easily</h3>
+                        <p>Use our AI-generated CVs to apply for jobs with one click.</p>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        
+
+        <!-- Login Section -->
+        <section class="slide-section" id="loginSection">
+            <!-- <img src="/static/images/scroll-down.png" alt="Scroll down"> -->
+            <h2>Login</h2>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=True) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if 'login' in category or category=='register-success' %}
+                            <div class="flash-message {{ category }}">{{ message }}</div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form action="/login" method="post">
+                <input type="text" name="identifier" placeholder="Username or Email" required>
+                <input type="password" name="password" placeholder="Password" required autocomplete="off">
+                <button class="login" type="submit">Login</button>
+            </form>
+            <div>
+                <p>Forgot your password? <a href="/forgot-password">Click here</a></p>
+                <p>Don't have an account? <button id="goToRegister" class="link-btn">Register</button></p>
+            </div>
+            </section>
+
+        <!-- Register Section -->
+        <section class="slide-section" id="registerSection">
+            <!-- <img src="/static/images/scroll-down.png" alt="Scroll down"> -->
+            <h2>Register</h2>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=True) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if 'register-error' in category %}
+                            <div class="flash-message {{ category }}">{{ message }}</div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form onsubmit="return validatePassword()" action="/register" method="post">
+                <input type="text" id="username" name="username" placeholder="Username" required>
+                <input type="email" id="email" name="email" placeholder="Email" required>
+                <input type="password" id="password" name="password" placeholder="Password" required autocomplete="off"
+                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$" 
+                    title="Password must be at least 8 characters long, with at least one uppercase, one lowercase, one number, and one special character.">
+                <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm Password" required autocomplete="off">
+                <span id="error-message" style="color: red;"></span>
+                <button class="register" type="submit">Register</button>
+            </form>
+            <p>Already have an account? <button id="goToLogin" class="link-btn">Login</button></p>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Job Finder. All Rights Reserved.</p>
+    </footer>
+</body>
+</html>
