@@ -64,6 +64,21 @@ An AI-powered job platform that helps job seekers **find better jobs faster** by
 
 ---
 
-## 📂 Folder Structure (Coming Soon)
+## 📂 Folder Structure
 
-
+├── app.py # Main Flask application
+├── auth.py # Authentication routes and logic
+├── cv_handler.py # CV parsing and generation logic
+├── db.py # Database connection and helpers
+├── engine.py # Job scraping and matching engine
+├── models.py # SQLAlchemy models
+├── utils.py # Utility functions
+├── requirements.txt # Python dependencies
+├── alembic.ini # Alembic migration config
+├── LICENSE
+├── README.md
+├── .gitattributes
+│
+├── migrations/ # Alembic migration files
+├── static/ # Static frontend files (CSS, JS, images)
+└── templates/ # HTML templates (Jinja2)
