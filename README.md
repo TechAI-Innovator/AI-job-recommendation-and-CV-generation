@@ -3,11 +3,9 @@
 An AI-powered job platform that helps job seekers **find better jobs faster** by providing **personalized job recommendations** and **automatically generated tailored CVs** using LLMs (Large Language Models).
 
 ![Platform Preview](assets/preview-placeholder.jpg)
-> 📸 _Add a screenshot or platform UI preview here_
 
 🎥 **Watch How It Works**  
 [![Watch Video](assets/video-thumbnail.jpg)](https://your-video-link.com)
-> _Replace with a demo video or GIF walkthrough_
 
 ---
 
