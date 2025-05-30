@@ -15,13 +15,13 @@ An AI-powered job platform that helps job seekers **find better jobs faster** by
 
 ## 🧠 Tech Stack
 
-- **Frontend**: HTML, CSS, JavaScript (custom), Tailwind (optionally for styling)
+- **Frontend**: HTML, CSS, JavaScript (custom)
 - **Backend**: Python, Flask
-- **AI/NLP**: Open Source LLMs (e.g. Mistral via Ollama), Hugging Face Transformers
-- **Scraping**: Selenium, BeautifulSoup
-- **CV Generation**: Python-docx, ReportLab
-- **Storage**: SQLite/PostgreSQL
-- **Hosting**: Render / Railway (free-tier cloud platforms)
+- **AI/NLP**: Groks LLaMA
+- **Scraping**: BeautifulSoup
+- **CV Generation**: ReportLab
+- **Storage**: PostgreSQL
+- **Hosting**: Render
 
 ## 📌 Use Case
 
