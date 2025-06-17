@@ -1,23 +1,28 @@
 from flask import (Flask, jsonify, 
                    render_template, 
                    flash, request,
-                   redirect, url_for)
+                   redirect, url_for,
+                   send_file, abort)
 from flask_login import LoginManager, current_user, login_required
 from flask_migrate import Migrate
 from sqlalchemy.exc import SQLAlchemyError
 from db import engine, Base
-from models import User, CV
+from models import User, CV, JobRecommendation
 from engine import get_db, clean_entries, save_user_profile, save_cv
 from utils import init_db_if_needed
 from cv_handler import handle_cv_upload, save_resume_file
 from auth import auth_bp, mail
 import os
 from dotenv import load_dotenv
-from datetime import datetime
+from job_scrapper import get_perfected_user_details, get_job_recommendation_details, get_perfected_user_details
+from cv_generator import (generate_cv_with_llm, convert_text_to_pdf,
+                          get_user_full_details)
+from io import BytesIO
 
 load_dotenv()
 
 app = Flask(__name__)
+
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER')
 app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT'))
@@ -26,6 +31,9 @@ app.config['MAIL_USE_SSL'] = os.environ.get('MAIL_USE_SSL') == 'True'
 app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 mail.init_app(app)
 
@@ -47,15 +55,104 @@ def load_user(user_id):
 def index():
     return render_template("index.html")
 
-@app.route("/dashboard")
+@app.route("/dashboard", methods=["Get", "POST"])
 @login_required
 def dashboard():
-    return render_template("dashboard.html", user = current_user.username)
+    user_id = current_user.id
+    
+    job_details = get_job_recommendation_details(user_id)
+
+    return render_template("dashboard.html", user = current_user.username, job_details=job_details)
+
+@app.route("/scrape-jobs")
+@login_required
+def scrape_jobs():
+    user_id = current_user.id
+    result = get_perfected_user_details(user_id)
+    return result
 
 @app.route("/cv-generator")
 @login_required
 def cv_generator():
-    return render_template("CV_generator.html", user = current_user.username)
+    return render_template("CV_generator.html")
+
+@app.route("/api/generate-initial-format-cv/<int:job_id>", methods=["GET"])
+@login_required
+def generate_initial_format_cv(job_id):
+    db = next(get_db())
+    job = db.get(JobRecommendation, job_id)
+    db.close()
+
+    if not job:
+        return abort(404, description="Job not found")
+    
+    user_details = get_user_full_details(current_user.id)
+
+    db = next(get_db())
+    user_cv_record = db.query(CV).filter_by(user_id=current_user.id).first()
+    db.close()
+
+    if not user_cv_record:
+        return abort(404, description="No CV uploaded by user")
+
+    llm_input = {
+        "user_details": user_details,
+        "job_details": job.__dict__.pop('_sa_instance_state', None),
+        "initial_cv_content": user_cv_record.content
+    }
+
+    generated_cv_text = generate_cv_with_llm(llm_input, follow_format=True)
+
+    if not generated_cv_text:
+        return abort(500, description="CV generation failed. Please try again later.")
+
+    pdf_bytes = convert_text_to_pdf(generated_cv_text)
+
+    # Convert generated CV text to PDF bytes
+    pdf_bytes = convert_text_to_pdf(generated_cv_text)
+
+    return send_file(
+        BytesIO(pdf_bytes),
+        mimetype='application/pdf',
+        as_attachment=False,
+        download_name=f'cv_initial_format_{job_id}.pdf'
+    )
+
+
+@app.route("/api/generate-llm-format-cv/<int:job_id>", methods=["GET"])
+@login_required
+def generate_llm_format_cv(job_id):
+    db = next(get_db())
+    job = db.get(JobRecommendation, job_id)
+    db.close()
+
+    job_dict = {k: v for k, v in job.__dict__.items() if k != '_sa_instance_state'}
+
+    if not job:
+        return abort(404, description="Job not found")
+    
+    user_details = get_user_full_details(current_user.id)
+
+    llm_input = {
+        "user_details": user_details,
+        "job_details": job_dict
+    }
+
+    generated_cv_text = generate_cv_with_llm(llm_input, follow_format=False)
+
+    if not generated_cv_text:
+        return abort(500, description="CV generation failed. Please try again later.")
+
+    # Convert generated CV text to PDF bytes
+    pdf_bytes = convert_text_to_pdf(generated_cv_text)
+
+    return send_file(
+        BytesIO(pdf_bytes),
+        mimetype='application/pdf',
+        as_attachment=False,
+        download_name=f'cv_llm_format_{job_id}.pdf'
+    )
+
 
 @app.route("/profile", methods=["GET", "POST"])
 @login_required
@@ -84,11 +181,21 @@ def profile():
         skills = request.form.get('skills', "")
         min_salary  = request.form.get('min_salary', "")
         preferred_titles  = request.form.get('preferred_titles', "")
-        preferred_locations  = request.form.get("preferred_locations", "")
         employment_type  = request.form.get("employment_type", "")
         experience_level = request.form.get("experience_level", "")
         preferred_industries = request.form.get("preferred_industries", "")
         job_keywords = request.form.get("job_keywords", "")
+
+
+        # For location mapping
+        locations = request.form.getlist("locations[]")
+        location_worktype_map = {}
+
+        for i, loc in enumerate(locations):
+            worktypes = request.form.getlist(f"worktypes_{i}[]")
+            if loc and worktypes:
+                location_worktype_map[loc.strip().lower()] = [wt.strip().lower() for wt in worktypes]
+
 
         # Serialize and clean education
         education = []
@@ -127,15 +234,6 @@ def profile():
 
         experience = clean_entries(experience)
         
-        print(
-            "\n\nthe extracted details are",
-            first_name, middle_name, surname, phone,
-            location, linkedin, github, summary,
-            education, experience,
-            skills, preferred_titles, min_salary,
-            preferred_locations, employment_type,
-            experience_level, preferred_industries, job_keywords,
-        )
 
         profile_data = {
                     "first_name": first_name,
@@ -151,7 +249,7 @@ def profile():
                     "experience": experience or [],
                     "preferred_titles": preferred_titles,
                     "min_salary": min_salary,
-                    "preferred_locations": preferred_locations,
+                    "location_worktype_map": location_worktype_map,
                     "employment_type": employment_type,
                     "experience_level": experience_level,
                     "preferred_industries": preferred_industries,
@@ -188,7 +286,7 @@ def profile():
         "experience": user.experience or [],
         "preferred_titles": user.preferred_titles,
         "min_salary": user.min_salary,
-        "preferred_locations": user.preferred_locations,
+        "location_worktype_map": user.location_worktype_map or [],
         "employment_type": user.employment_type,
         "experience_level": user.experience_level,
         "preferred_industries": user.preferred_industries,
@@ -244,10 +342,9 @@ def delete_cv():
     return jsonify({"error": "File not found"}), 400
 
 
-
 migrate = Migrate(app, Base, engine)
 
 
 if __name__ == "__main__":
     init_db_if_needed()
-    app.run(debug=True)
+    app.run()

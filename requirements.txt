@@ -10,3 +10,5 @@ langchain_groq
 python-dotenv
 SQLAlchemy
 Werkzeug
+psycopg2-binary
+flask_sqlalchemy

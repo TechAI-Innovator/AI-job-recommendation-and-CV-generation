@@ -1,17 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-  <link rel="icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/png">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Portal</title>
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <script>tailwind.config={theme:{extend:{colors:{primary:'#2563eb',secondary:'#3b82f6'},borderRadius:{'none':'0px','sm':'4px',DEFAULT:'8px','md':'12px','lg':'16px','xl':'20px','2xl':'24px','3xl':'32px','full':'9999px','button':'8px'}}}}</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-  <header class="header">
+    <header class="header">
     <a href="{{ url_for('dashboard') }}" class="logo">
       <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" />
     </a>
@@ -28,34 +34,159 @@
     </nav>
   </header>
 
-  <main class="job-container">
-    <h1>Hello {{user}}, Welcome to Your Job Dashboard</h1>
-    <!-- Sample Job Card -->
-    <div class="job-card">
-      <div class="job-header">
-        <h2>Software Engineer</h2>
-        <span class="company">Google</span>
-      </div>
-      <div class="job-meta">
-        <p><strong>Location:</strong> Remote</p>
-        <p><strong>Salary:</strong> $70,000 - $100,000</p>
-        <p><strong>Job Type:</strong> Full-Time</p>
-        <p><strong>Experience Level:</strong> Mid-Level</p>
-        <p><strong>Skills Required:</strong> Python, Flask, PostgreSQL</p>
-        <p><strong>Posted:</strong> 3 days ago</p>
-        <p><strong>Deadline:</strong> May 1, 2025</p>
-      </div>
-      <p class="description">Join our backend team to build scalable services using Python and PostgreSQL.</p>
-      <div class="job-actions">
-        <a href="https://joblink.com" class="apply-btn" target="_blank">Apply Now</a>
-        <a href="{{ url_for('profile', job_id=123) }}" class="cv-btn">Download Tailored CV</a>
-      </div>
-    </div>
-  </main>
 
-  <!-- Footer -->
-  <footer>
-    <p>&copy; 2025 Job Finder. All Rights Reserved.</p>
-</footer>
+    <main class="container mx-auto px-4 py-8">
+
+        <div style="text-align: center;">
+            <div class="welcm-msg">Hello {{user}}, Welcome to Your Job Dashboard</div>
+        </div>
+
+
+        <section class="mb-12">
+            <div class="text-center my-4">
+                <button id="startButton" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition-transform transform hover:scale-105">
+                    Start Scraping
+                </button>
+            </div>
+
+            {% if job_details %}
+            <div class="text-center my-4">
+                <button id="startButton" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition-transform transform hover:scale-105">
+                    Start Scraping
+                </button>
+            </div>
+            
+            <div class="mb-4 flex items-center justify-between">
+                <h3 class="text-xl font-semibold">Featured Jobs</h3>
+                <div class="flex gap-2">
+                    <button id="scrollLeft" class="p-2 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors">
+                        <div class="w-5 h-5 flex items-center justify-center">
+                            <i class="ri-arrow-left-s-line"></i>
+                        </div>
+                    </button>
+                    <button id="scrollRight" class="p-2 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors">
+                        <div class="w-5 h-5 flex items-center justify-center">
+                            <i class="ri-arrow-right-s-line"></i>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="job-cards-container flex overflow-x-auto gap-6 pb-4" id="jobCardsContainer">
+                {% for job_detail in job_details %}
+                <div class="job-card flex-shrink-0 w-[320px] bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all">
+                    <div class="h-24 bg-gradient-to-r from-blue-500/10 to-purple-500/10 relative">
+                        <div class="absolute top-4 left-4 w-16 h-16 bg-white rounded-lg shadow-sm flex items-center justify-center">
+                            <div class="w-10 h-10 flex items-center justify-center text-primary">
+                                <i class="ri-google-fill ri-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-5 pt-8">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="font-semibold text-lg">{{ job_detail.job_title }}</h4>
+                                <p class="text-gray-600 text-sm">{{ job_detail.company }}</p>
+                            </div>
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{{ job_detail.job_type }}</span>
+                        </div>
+                        <div class="flex gap-3 mb-4">
+                            <div class="flex items-center text-gray-500 text-sm">
+                                <div class="w-4 h-4 flex items-center justify-center mr-1">
+                                    <i class="ri-map-pin-line"></i>
+                                </div>
+                                <span>{{ job_detail.location or "Location not specified" }}</span>
+                            </div>
+                            <div class="flex items-center text-gray-500 text-sm">
+                                <div class="w-4 h-4 flex items-center justify-center mr-1">
+                                    <i class="ri-money-dollar-circle-line"></i>
+                                </div>
+                                <span>{{ job_detail.salary or "Salary not disclosed" }}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-1 text-sm text-gray-600 mb-4">
+                            <div><strong>Experience:</strong> {{ job_detail.experience_level or "Not specified" }}</div>
+                            <div><strong>Posted:</strong> {{ job_detail.posted or "Not available" }}</div>
+                            <div><strong>Deadline:</strong> {{ job_detail.deadline or "Not mentioned" }}</div>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2 mb-5">
+                            {% if job_detail.skills %}
+                                {% for skill in job_detail.skills %}
+                                    <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">{{ skill }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-gray-400 text-xs italic">No skills specified</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="flex gap-3">
+                            <a href="{{ job_detail.url }}" target="_blank" rel="noopener noreferrer" class="flex-1 px-3 py-2 bg-primary text-white text-sm font-medium !rounded-button hover:bg-primary/90 transition-colors text-center whitespace-nowrap">Apply Now</a>
+                            <a href="{{ url_for('cv_generator', job_id=job_detail.id) }}" class="flex-1 px-3 py-2 border border-primary text-primary text-sm font-medium !rounded-button hover:bg-primary/5 transition-colors text-center whitespace-nowrap">Generate CV</a>
+                        </div>
+
+                    </div>
+                </div>
+
+                {% endfor %}
+
+            </div>
+                
+            {% else %}
+
+            <div style="text-align: center;">
+                <div class="welcm-msg">click on the "Start Scraping" button now to locate your dream jobs</div>
+            </div>
+
+            {% endif %}
+        </section>
+
+
+
+        <section class="mb-12 bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+            <div class="mt-8">
+                <h4 class="text-lg font-semibold mb-4">Share Your Experience</h4>
+                <div class="bg-gray-50 rounded-lg p-5 border border-gray-100">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2 text-sm font-medium">Your Rating</label>
+                        <div class="flex gap-2">
+                            <div class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-yellow-400 cursor-pointer">
+                                <i class="ri-star-fill ri-lg"></i>
+                            </div>
+                            <div class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-yellow-400 cursor-pointer">
+                                <i class="ri-star-fill ri-lg"></i>
+                            </div>
+                            <div class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-yellow-400 cursor-pointer">
+                                <i class="ri-star-fill ri-lg"></i>
+                            </div>
+                            <div class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-yellow-400 cursor-pointer">
+                                <i class="ri-star-fill ri-lg"></i>
+                            </div>
+                            <div class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-yellow-400 cursor-pointer">
+                                <i class="ri-star-fill ri-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="feedback" class="block text-gray-700 mb-2 text-sm font-medium">Your Feedback</label>
+                        <textarea id="feedback" rows="4" class="w-full px-4 py-2 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"></textarea>
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button class="px-6 py-2 bg-primary text-white font-medium !rounded-button hover:bg-primary/90 transition-colors whitespace-nowrap">Submit Feedback</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Job Finder. All Rights Reserved.</p>
+    </footer>
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
 </html>
