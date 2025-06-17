@@ -13,16 +13,16 @@ import json
 
 load_dotenv()
 # Get Groq API key from environment variables
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+CV_PARSER_GROQ_API_KEY = os.environ.get("CV_PARSER_GROQ_API_KEY")
 
 # Initialize Groq model
-llm = ChatGroq(
+cv_parser_llm = ChatGroq(
     model="llama-3.3-70b-versatile",
     temperature=0.3,
     max_tokens=1000,
     timeout=30,
     max_retries=2,
-    api_key=GROQ_API_KEY
+    api_key=CV_PARSER_GROQ_API_KEY
 )
 
 UPLOAD_FOLDER = "static/uploads"
@@ -99,7 +99,7 @@ def parse_cv_with_llm(cv_text: str) -> dict:
         messages = prompt.format_messages(cv_text=cv_text)
 
         # Send prompt to the Groq model
-        response = llm.invoke(messages)
+        response = cv_parser_llm.invoke(messages)
         cleaned_response = response.content.strip("`\n ")
         return json.loads(cleaned_response)
 

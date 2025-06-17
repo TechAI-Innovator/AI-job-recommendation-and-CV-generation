@@ -163,3 +163,38 @@ function removeSection(button) {
     entry.remove();
   }
 }
+
+
+function addLocationRow() {
+  const container = document.getElementById("location-preference-list");
+  const row = document.createElement("div");
+  row.classList.add("location-preference-row");
+
+  row.innerHTML = `
+    <div class="location-preference-row">
+      <input type="text" name="locations[]" placeholder="e.g. Nigeria, USA" required>
+      <label><input type="checkbox" name="worktypes_${locationIndex}[]" value="remote"> Remote</label>
+      <label><input type="checkbox" name="worktypes_${locationIndex}[]" value="on-site"> On-site</label>
+      <label><input type="checkbox" name="worktypes_${locationIndex}[]" value="hybrid"> Hybrid</label>
+    </div>
+      <button type="button" class="remove-btn" onclick="removeLocationRow(this)">Remove</button>
+  `;
+
+  container.appendChild(row);
+  locationIndex++;
+}
+
+function removeLocationRow(button) {
+  const row = button.closest('.location-preference-row');
+  const container = document.getElementById("location-preference-list");
+
+  if (container.children.length > 1) {
+    // Add fade-out class to trigger CSS animation
+    row.classList.add("fade-out");
+
+    // Wait for the animation to finish before removing
+    setTimeout(() => {
+      container.removeChild(row);
+    }, 300); // Match this with CSS transition duration
+  }
+}

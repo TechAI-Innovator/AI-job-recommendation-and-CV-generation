@@ -102,28 +102,28 @@ def send_reset_email(user):
         
         msg.body = f'''Hello {user.username or 'there'},
 
-                        We received a request to reset your password. You can do this securely by clicking the button below:
+    We received a request to reset your password. You can do this securely by clicking the button below:
 
-                        Reset Password: {reset_link}
+    Reset Password: {reset_link}
 
-                        If the button above doesn't work, you can copy and paste this link into your browser:
-                        {reset_link}
+    If the button above doesn't work, you can copy and paste this link into your browser:
+    {reset_link}
 
-                        Alternatively, copy the reset code below and paste it on the manual reset page:
+    Alternatively, copy the reset code below and paste it on the manual reset page:
 
-                        Your Reset Code:
-                        {token}
+    Your Reset Code:
+    {token}
 
-                        Go to this page to use the code:
-                        https://yourapp.com/manual-reset
+    Go to this page to use the code:
+    https://yourapp.com/manual-reset
 
-                        ⚠️ Note: This reset link and code will expire in 1 hour.
+    ⚠️ Note: This reset link and code will expire in 1 hour.
 
-                        If you did not request this, you can safely ignore this email — no changes will be made to your account.
+    If you did not request this, you can safely ignore this email — no changes will be made to your account.
 
-                        Stay secure,
-                        The Job Finder Team
-                    '''
+    Stay secure,
+    The Job Finder Team
+'''
         mail.send(msg)
         return True
     

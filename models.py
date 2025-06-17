@@ -29,7 +29,7 @@ class User(Base, UserMixin):
     github = Column(String(150))
     linkedin = Column(String(150))
     summary = Column(Text)
-    preferred_locations = Column(String(100))
+    location_worktype_map = Column(JSON)
     employment_type  = Column(String(100)) 
     experience_level = Column(String(50))
     preferred_industries = Column(String(150))
@@ -45,13 +45,18 @@ class JobRecommendation(Base):
     
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"))
+
     job_title = Column(String(150))
     company = Column(String(150))
     salary = Column(String(100))
     location = Column(String(100))
     description = Column(Text)
     url = Column(String(300))
-    match_score = Column(Integer)  # Optional match score (0–100)
+    posted = Column(String(100))
+    experience_level = Column(String(100))
+    skills_required = Column(Text)
+    job_type = Column(String(100))
+    deadline = Column(String(100))
     timestamp = Column(DateTime, default=datetime.now())
 
     user = relationship("User", back_populates="job_recommendations")

@@ -1,10 +1,102 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV Generator</title>
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<script>tailwind.config={theme:{extend:{colors:{primary:'#2563eb',secondary:'#3b82f6'},borderRadius:{'none':'0px','sm':'4px',DEFAULT:'8px','md':'12px','lg':'16px','xl':'20px','2xl':'24px','3xl':'32px','full':'9999px','button':'8px'}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/CV_generator.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+<link rel="icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/png">
 </head>
-<body>
-    <p ><strong>Hello World</strong></p>
+<body class="bg-gray-50 min-h-screen">
+    <header class="header">
+    <a href="{{ url_for('dashboard') }}" class="logo">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" />
+    </a>
+    <nav class="header-nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-link">
+        <i class="fas fa-gauge"></i> Dashboard
+      </a>
+      <a href="{{ url_for('profile') }}" class="nav-link">
+        <i class="fas fa-user"></i> Profile
+      </a>
+      <a href="{{ url_for('auth.logout') }}" class="nav-link">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
+    </nav>
+  </header>
+
+    <main class="container mx-auto px-4 py-12">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold mb-3">CV Generator</h2>
+                <p class="text-gray-600">Create a professional CV in minutes that matches your job</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm p-8 border border-gray-100">
+                <div id="loadingState" class="hidden text-center py-12">
+                    <div class="w-16 h-16 mx-auto mb-4 text-primary">
+                        <i class="ri-loader-4-line loading-spinner ri-3x"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Generating Your CV</h3>
+                    <p class="text-gray-600">Please wait while we process your information...</p>
+                </div>
+
+                <div id="optionsState">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-gray-50 rounded-lg p-6 border border-gray-100 text-center hover:border-primary/30 hover:shadow-md transition-all cursor-pointer" onclick="generateCV('initial')">
+                            <div class="w-16 h-16 mx-auto mb-4 text-primary">
+                                <i class="ri-file-list-3-line ri-3x"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold mb-2">Use Your CV Format</h3>
+                            <p class="text-gray-600">Upload your existing CV and we'll enhance it with AI</p>
+                            <button class="mt-4 px-6 py-2 bg-primary text-white font-medium !rounded-button hover:bg-primary/90 transition-colors whitespace-nowrap">
+                                Choose Template
+                            </button>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-6 border border-gray-100 text-center hover:border-primary/30 hover:shadow-md transition-all cursor-pointer" onclick="generateCV('llm')">
+                            <div class="w-16 h-16 mx-auto mb-4 text-primary">
+                                <i class="ri-magic-line ri-3x"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold mb-2">Generate from Scratch</h3>
+                            <p class="text-gray-600">Let AI create a personalized CV based on your information</p>
+                            <button class="mt-4 px-6 py-2 bg-primary text-white font-medium !rounded-button hover:bg-primary/90 transition-colors whitespace-nowrap">
+                                Start Fresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="previewState" class="hidden">
+                    <div class="bg-gray-50 rounded-lg p-6 border border-gray-100">
+                        <iframe id="cvPreviewFrame" class="w-full h-[600px] border rounded" src=""></iframe>
+                        <div class="flex justify-center gap-4 mt-8">
+                            <a id="downloadCvLink" href="#" download class="px-6 py-2 bg-primary text-white font-medium !rounded-button hover:bg-primary/90 transition-colors whitespace-nowrap">
+                                Download CV
+                            </a>
+                            <button onclick="resetGenerator()" class="px-6 py-2 border border-primary text-primary font-medium !rounded-button hover:bg-primary/5 transition-colors whitespace-nowrap">
+                                Start Over
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+<!-- Footer -->
+<footer>
+    <p>&copy; 2025 Job Finder. All Rights Reserved.</p>
+</footer>
+
+<script src="/static/js/cv-generator.js"></script>
+
 </body>
 </html>

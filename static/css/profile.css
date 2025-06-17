@@ -4,28 +4,6 @@
   box-sizing: border-box;
 }
 
-/* body {
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-  font-family: sans-serif;
-  background: linear-gradient(45deg, #0f2027, #2c5364, #00c9ff, #92fe9d);
-  background-size: 400% 400%;
-  animation: gradientMove 5s ease infinite;
-}
-
-@keyframes gradientMove {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-} */
-
 body {
   background: url('/static/images/profile2.png') repeat;
   background-size: cover;
@@ -94,8 +72,6 @@ main {
     transform: translateY(10px);
   }
 }
-
-
   
   .section {
     margin-bottom: 40px;
@@ -152,7 +128,7 @@ main {
     border: 1px solid #d2dfff;
     padding: 10px 14px;
     border-radius: 6px;
-    margin-top: 8px;
+    margin-bottom: 15px;
     font-size: 0.95rem;
     transition: all 0.3s ease;
   }
@@ -194,7 +170,99 @@ main {
   .submit-btn button:hover, .submit-btn a:hover  {
     background-color: #003580;
   }
-  
+
+  /* Style each location + work type row */
+.location-preference-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: #f6f9ff;
+  border: 1px solid #d2dfff;
+  border-radius: 10px;
+}
+
+/* Input inside each row */
+.location-preference-row input[type="text"] {
+  flex: 2;
+  min-width: 200px;
+}
+
+/* Labels for checkboxes */
+.location-preference-row label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background-color: #eef2ff;
+  border-radius: 6px;
+  border: 1px solid #ccd7ff;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+/* Checkbox styling (optional tweak for visibility) */
+.location-preference-row input[type="checkbox"] {
+  transform: scale(1.1);
+  accent-color: #004aad;
+}
+
+/* Animate row appearance */
+.location-preference-row {
+  animation: fadeInSlide 0.4s ease-in-out;
+}
+
+@keyframes fadeInSlide {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-out {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+}
+
+@media (max-width: 600px) {
+  .location-preference-row {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px;
+  }
+
+  .location-preference-row input[type="text"] {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .location-preference-row label {
+    width: 100%;
+    padding: 10px;
+    justify-content: flex-start;
+  }
+
+  .location-preference-row input[type="checkbox"] {
+    margin-right: 8px;
+  }
+
+  .add-btn, .remove-btn {
+    width: 100%;
+  }
+}
+
+.worktype-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}  
   .hidden {
     display: none;
   }
