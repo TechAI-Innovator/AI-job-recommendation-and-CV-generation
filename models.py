@@ -77,6 +77,7 @@ class Feedback(Base):
     
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"))
+    rating = Column(Integer, nullable=False)
     message = Column(Text)
     created_at = Column(DateTime, default=datetime.now())
 

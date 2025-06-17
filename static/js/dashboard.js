@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     stars.forEach((star, index) => {
         star.addEventListener('click', () => {
-            selectedRating = index;
+            selectedRating = index + 1;  // now rating is 1 to 5
             updateStars();
         });
 
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         star.addEventListener('mouseout', () => {
-            highlightStars(selectedRating);
+            highlightStars(selectedRating - 1);
         });
     });
 
@@ -43,7 +43,47 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateStars() {
-        highlightStars(selectedRating);
+        highlightStars(selectedRating - 1);
+    }
+
+    // === Feedback Submission ===
+    const submitBtn = document.getElementById("submitFeedback");
+    const feedbackTextarea = document.getElementById("feedback");
+
+    if (submitBtn && feedbackTextarea) {
+        submitBtn.addEventListener("click", async () => {
+            const message = feedbackTextarea.value.trim();
+
+            if (selectedRating < 1 || message === "") {
+                alert("Please rate and provide feedback.");
+                return;
+            }
+
+            try {
+                const res = await fetch("/submit-feedback", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        rating: selectedRating,
+                        message: message
+                    })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    alert("Thank you for your feedback!");
+                    feedbackTextarea.value = "";
+                    selectedRating = -1;
+                    updateStars();
+                } else {
+                    alert("Error: " + data.message);
+                }
+            } catch (err) {
+                alert("Something went wrong. Try again.");
+                console.error(err);
+            }
+        });
     }
 
     // === Start Button Scraping ===

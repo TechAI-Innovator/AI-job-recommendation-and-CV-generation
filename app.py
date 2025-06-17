@@ -7,7 +7,7 @@ from flask_login import LoginManager, current_user, login_required
 from flask_migrate import Migrate
 from sqlalchemy.exc import SQLAlchemyError
 from db import engine, Base
-from models import User, CV, JobRecommendation
+from models import User, CV, JobRecommendation, Feedback
 from engine import get_db, clean_entries, save_user_profile, save_cv
 from utils import init_db_if_needed
 from cv_handler import handle_cv_upload, save_resume_file
@@ -341,10 +341,37 @@ def delete_cv():
             return jsonify({"error": "Failed to delete resume"}), 500
     return jsonify({"error": "File not found"}), 400
 
+@app.route("/submit-feedback", methods=["POST"])
+@login_required
+def submit_feedback():
+    data = request.get_json()
+    rating = data.get("rating")
+    message = data.get("message")
+
+    if not rating or not message:
+        return jsonify({"message": "Rating and message required"}), 400
+    
+    db = next(get_db())
+    try:
+        feedback = Feedback(
+            user_id=current_user.id,
+            rating=rating,
+            message=message
+        )
+        db.add(feedback)
+        db.commit()
+        return jsonify({"message": "Feedback submitted successfully."}), 200
+    
+    except SQLAlchemyError as e:  
+        print(f"Feedback error: {e}")
+        return jsonify({"message": "⚠️ Feedback submision failed. Please try again."})
+    finally:
+        db.close()
+
 
 migrate = Migrate(app, Base, engine)
 
 
 if __name__ == "__main__":
     init_db_if_needed()
-    app.run()
+    app.run(debug=True)
