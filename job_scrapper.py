@@ -18,6 +18,7 @@ import logging
 import json
 import re
 from urllib.parse import urlencode
+from flask import flash
 
 
 # --- Logging Configuration ---
@@ -178,24 +179,50 @@ def generate_linkedin_urls(user_preferences):
     return urls
 
 def get_user_projects_with_readmes(github_username):
+    if not github_username:
+        flash("GitHub username is required.", "error")
+        logger.warning("No GitHub username provided.")
+        return []
+
     repos_url = f"https://api.github.com/users/{github_username}/repos"
+
     try:
         repos_response = requests.get(repos_url)
-        repos = repos_response.json()
-        projects = []
+        if repos_response.status_code != 200:
+            flash(f"GitHub user '{github_username}' not found.", "error")
+            logger.warning(f"GitHub user '{github_username}' not found. Status: {repos_response.status_code}")
+            return []
 
+        repos = repos_response.json()
+        if not isinstance(repos, list):
+            flash("Unexpected response from GitHub.", "error")
+            logger.error("Unexpected response format from GitHub API.")
+            return []
+
+        projects = []
         for repo in repos:
             readme_url = f"https://api.github.com/repos/{github_username}/{repo['name']}/readme"
             readme_response = requests.get(readme_url)
+
             content = "No README available."
             if readme_response.status_code == 200:
                 readme_data = readme_response.json()
                 content_encoded = readme_data.get("content", "")
-                content = base64.b64decode(content_encoded).decode("utf-8", errors="ignore")
-            projects.append({"name": repo["name"], "url": repo["html_url"], "readme": content.strip()})
+                if content_encoded:
+                    content = base64.b64decode(content_encoded).decode("utf-8", errors="ignore")
+
+            projects.append({
+                "name": repo["name"],
+                "url": repo["html_url"],
+                "readme": content.strip()
+            })
+
+        flash(f"Fetched {len(projects)} project(s) for '{github_username}'.", "success")
         return projects
+
     except Exception as e:
-        logger.error(f"GitHub fetch error: {e}")
+        flash("An error occurred while fetching GitHub data.", "error")
+        logger.error(f"GitHub fetch error for user '{github_username}': {e}")
         return []
     
 def compare_social_to_database(user_details, user_github_repo):
@@ -489,6 +516,10 @@ def get_perfected_user_details(user_id):
         
         github_username = github_url.split("/")[-1]
         user_github_repo = get_user_projects_with_readmes(github_username)
+
+        if not user_github_repo:
+            flash ("Invalid Username or Empty readme", "error")
+            return
 
         # Step 3: Merge GitHub + DB info using LLM
         user_full_details = compare_social_to_database(user_preferences, user_github_repo)
