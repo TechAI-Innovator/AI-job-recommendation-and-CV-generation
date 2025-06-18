@@ -78,5 +78,5 @@ An AI-powered job platform that helps job seekers **find better jobs faster** by
 ├── .gitattributes
 │
 ├── migrations/ # Alembic migration files
-├── static/ # Static frontend files (CSS, JS, images)
+├── static/ # Static frontend files (CSS, JS, images, uploads)
 └── templates/ # HTML templates (Jinja2)
