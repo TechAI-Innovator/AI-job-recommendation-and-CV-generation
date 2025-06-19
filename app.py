@@ -323,6 +323,8 @@ def profile():
 @login_required
 def extract_cv():
     file = request.files.get("cv_file")
+    if file:
+        return jsonify({"message": "seen"})
 
     if not file or file.filename == '':
         return jsonify({"error": "No file uploaded"}), 400
