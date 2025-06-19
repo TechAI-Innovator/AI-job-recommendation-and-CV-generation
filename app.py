@@ -374,4 +374,4 @@ migrate = Migrate(app, Base, engine)
 
 if __name__ == "__main__":
     init_db_if_needed()
-    app.run(debug=True)
+    app.run()
