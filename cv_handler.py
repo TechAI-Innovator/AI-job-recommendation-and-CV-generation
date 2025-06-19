@@ -9,6 +9,8 @@ from langchain.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
 from langchain_community.document_loaders import PyMuPDFLoader, UnstructuredFileLoader
 import json
+from io import BytesIO
+import tempfile
 
 
 load_dotenv()
@@ -29,17 +31,30 @@ UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # === Helper to extract text from uploaded CV ===
-def extract_text_from_file(file_path):
+def extract_text_from_file(file_stream, filename):
     try:
-        if file_path.endswith(".pdf"):
-            loader = PyMuPDFLoader(file_path)
+        # Create a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1]) as tmp:
+            tmp.write(file_stream.read())
+            tmp_path = tmp.name
+
+        # Use appropriate loader based on extension
+        if filename.lower().endswith(".pdf"):
+            loader = PyMuPDFLoader(tmp_path)
         else:
-            loader = UnstructuredFileLoader(file_path)
+            loader = UnstructuredFileLoader(tmp_path)
+
         docs = loader.load()
         return "\n".join([doc.page_content for doc in docs])
+
     except Exception as e:
         print(f"Failed to extract text: {e}")
         return ""
+
+    finally:
+        # Ensure the temp file is deleted
+        if 'tmp_path' in locals() and os.path.exists(tmp_path):
+            os.remove(tmp_path)
     
 def parse_cv_with_llm(cv_text: str) -> dict:
     """
@@ -113,30 +128,22 @@ def parse_cv_with_llm(cv_text: str) -> dict:
 
 def handle_cv_upload(file_storage, user_id):
     filename = secure_filename(file_storage.filename)
-    safe_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    file_path = os.path.join(
-        UPLOAD_FOLDER,
-        f"{user_id}_{safe_timestamp}_{filename}"
-    )
+    file_stream = BytesIO(file_storage.read())  # Read in-memory file
 
-
-    print(f"The file path is {file_path}")
-    file_storage.save(file_path)
-
-    # Extract text from file
-    raw_text = extract_text_from_file(file_path)
+    # Extract text from file (you’ll need to update extract_text_from_file)
+    raw_text = extract_text_from_file(file_stream, filename)
 
     # Parse with LangChain
     extracted_data = parse_cv_with_llm(raw_text)
-    extracted_data["raw_text"] = raw_text  # Store raw content
-    extracted_data["uploaded_cv_path"] = file_path
+    extracted_data["raw_text"] = raw_text
+    extracted_data["uploaded_cv_path"] = filename  # just the name
 
     try:
         db = next(get_db())
         cv = CV(
             user_id=user_id,
             content=extracted_data.get("raw_text", ""),
-            file_path = file_path
+            file_path=filename  # save just the name, not the full path
         )
         db.add(cv)
         db.commit()
@@ -149,10 +156,12 @@ def handle_cv_upload(file_storage, user_id):
 
 def save_resume_file(file_storage, user_id, old_file_path=None):
     """
-    Saves a new resume file and deletes the old one if it exists.
-    Returns the new file path and extracted content.
+    Extracts resume content from uploaded file without saving permanently.
+    Deletes old file if it exists (optional cleanup).
+    Returns filename and extracted text.
     """
-    # Delete the old file if provided
+
+    # 🔁 Delete old file if exists (optional cleanup)
     if old_file_path and os.path.exists(old_file_path):
         try:
             os.remove(old_file_path)
@@ -160,16 +169,11 @@ def save_resume_file(file_storage, user_id, old_file_path=None):
         except Exception as e:
             print(f"Failed to delete old resume: {e}")
 
+    # 📄 Prepare file stream
     filename = secure_filename(file_storage.filename)
-    safe_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    file_path = os.path.join(
-        UPLOAD_FOLDER,
-        f"{user_id}_{safe_timestamp}_{filename}"
-    )
-    
-    file_storage.save(file_path)
+    file_stream = BytesIO(file_storage.read())
 
-    # Extract text from file
-    raw_text = extract_text_from_file(file_path)
+    # 📦 Extract text using temp file method
+    raw_text = extract_text_from_file(file_stream, filename)
 
-    return file_path, raw_text
+    return filename, raw_text

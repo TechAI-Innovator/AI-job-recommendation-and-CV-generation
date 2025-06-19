@@ -163,10 +163,32 @@ def profile():
         resume_path = request.form.get("resume_path")  # From hidden input
         raw_text = None
 
-        # If a new resume is uploaded, overwrite the path
+        # 🔍 Retrieve the actual latest CV for this user
+        db = next(get_db())
+        latest_cv = (
+            db.query(CV)
+            .filter_by(user_id=user.id)
+            .order_by(CV.generated_on.desc())
+            .first()
+        )
+        db.close()
+        old_path = latest_cv.file_path if latest_cv and latest_cv.file_path else None
+
+        # If a new resume is uploaded, process it
         if 'resume' in request.files and request.files['resume'].filename != '':
             resume_file = request.files['resume']
-            resume_path, raw_text = save_resume_file(resume_file, user.id, old_file_path=resume_path)
+            filename, raw_text = save_resume_file(resume_file, user.id, old_file_path=old_path)
+
+            # Insert the new CV record
+            db = next(get_db())
+            new_cv = CV(
+                user_id=user.id,
+                file_path=filename,   # just the filename
+                content=raw_text,
+            )
+            db.add(new_cv)
+            db.commit()
+            db.close()
 
         # collect user fields
         first_name = request.form.get('first_name', "")
@@ -257,11 +279,6 @@ def profile():
                 }
         success, msg = save_user_profile(user.id, profile_data)
         flash(msg, "success" if success else "danger")
-
-        # Save CV
-        if resume_path and raw_text:
-            success, msg = save_cv(user.id, resume_path, raw_text)
-            flash(msg, "success" if success else "danger")
 
         return redirect(url_for('profile'))
 
