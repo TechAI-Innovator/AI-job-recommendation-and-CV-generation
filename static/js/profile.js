@@ -48,14 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        // Show the actual error message from the backend
-        alert(data.error || 'An unknown error occurred.');
-        uploadStatus.classList.add('hidden');
-        submitButton.disabled = false;
-        return;
-      }
-
       // Fill name fields individually
       document.querySelector('input[name="first_name"]').value = data.first_name || '';
       document.querySelector('input[name="middle_name"]').value = data.middle_name || '';
