@@ -2,7 +2,7 @@
 from sqlalchemy import (Column, Integer,
                         String, Text,
                         ForeignKey, DateTime,
-                        Boolean, JSON)
+                        JSON, UniqueConstraint)
 from sqlalchemy.orm import relationship
 from flask_login import UserMixin
 from db import Base
@@ -43,23 +43,29 @@ class User(Base, UserMixin):
 class JobRecommendation(Base):
     __tablename__ = "job_recommendations"
     
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     job_title = Column(String(150))
     company = Column(String(150))
     salary = Column(String(100))
     location = Column(String(100))
     description = Column(Text)
-    url = Column(String(300))
+    url = Column(String(300), unique=True, nullable=False)
     posted = Column(String(100))
     experience_level = Column(String(100))
     skills_required = Column(Text)
     job_type = Column(String(100))
     deadline = Column(String(100))
     timestamp = Column(DateTime, default=datetime.now())
+    job_hash = Column(String(64), unique=True, nullable=False)
 
     user = relationship("User", back_populates="job_recommendations")
+
+    __table_args__ = (
+        UniqueConstraint("url", name="uq_job_url"),
+        UniqueConstraint("job_hash", name="uq_job_hash"),
+    )
 
 class CV(Base):
     __tablename__ = "cvs"

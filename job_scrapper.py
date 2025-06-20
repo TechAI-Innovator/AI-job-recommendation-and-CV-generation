@@ -19,6 +19,7 @@ import json
 import re
 from urllib.parse import urlencode
 from flask import flash
+import hashlib
 
 
 # --- Logging Configuration ---
@@ -78,8 +79,8 @@ LINKEDIN_CODES = {
         "manager": "5"
     },
     "job_type": {
-        "full-time": "F",
-        "part-time": "P",
+        "fulltime": "F",
+        "parttime": "P",
         "contract": "C",
         "internship": "I"
     }
@@ -95,6 +96,12 @@ def get_headers():
         "Accept-Encoding": "gzip, deflate, br",
         "Connection": "keep-alive"
     }
+
+
+def generate_job_hash(title, company, location, description):
+    # Normalize fields and strip excessive whitespace
+    normalized = f"{title.strip().lower()}|{company.strip().lower()}|{location.strip().lower()}|{description.strip().lower()}"
+    return hashlib.sha256(normalized.encode('utf-8')).hexdigest()
 
 
 def get_user_preferences(user_id):
@@ -121,13 +128,13 @@ def preprocess_comma_separated_field(field_str):
     items = [re.sub(r'\s+', ' ', item.strip()) for item in field_str.split(',')]
     return [item for item in items if item]  # remove blanks
 
-def get_normalized_title_and_keywords(raw_title: str, llm) -> str | None:
+def get_normalized_title_and_keywords(raw_title: str, llm, state: dict) -> str | None:
     prompt_template = ChatPromptTemplate.from_messages([
         ("system",
          "You are a career assistant helping job seekers with the right job roles.\n"
          "User provides job title\n"
          "1. Normalize the title into a proper professional job title.\n"
-         "2. For the normalized title, generate 2-4 relevant keywords that would help generate linkedin link for job listings.\n"
+         "2. For the normalized title, generate 2-5 relevant keywords that would help generate linkedin link for job listings.\n"
          "3. Return only the result as a string, no other instructions as this would be parsed directly into another python code e.g Web Developer, JavaScript, HTML/CSS, Front-end Development"),
 
         ("user",
@@ -140,9 +147,11 @@ def get_normalized_title_and_keywords(raw_title: str, llm) -> str | None:
         return result
     except Exception as e:
         logger.error(f"LLM failed to process title '{raw_title}': {e}")
+        if "quota" in str(e).lower() or "limit" in str(e).lower():
+            state["llm_limit_exceeded"] = True
         return None
 
-def generate_linkedin_urls(user_preferences):
+def generate_linkedin_urls(user_preferences, state: dict):
     base_url = "https://www.linkedin.com/jobs/search?"
 
     titles = preprocess_comma_separated_field(user_preferences.get("preferred_titles", ""))
@@ -153,7 +162,9 @@ def generate_linkedin_urls(user_preferences):
     urls = []
 
     for title in titles:
-        normalized_title_and_keywords = get_normalized_title_and_keywords(title, matching_llm)
+        if state.get("llm_limit_exceeded"):
+            break
+        normalized_title_and_keywords = get_normalized_title_and_keywords(title, matching_llm, state)
         for location, worktypes in location_worktypes.items():
             for wt in worktypes:
 
@@ -180,24 +191,24 @@ def generate_linkedin_urls(user_preferences):
 
 def get_user_projects_with_readmes(github_username):
     if not github_username:
-        flash("GitHub username is required.", "error")
-        logger.warning("No GitHub username provided.")
-        return []
+        msg = "No GitHub username provided."
+        logger.warning(msg)
+        return [], msg
 
     repos_url = f"https://api.github.com/users/{github_username}/repos"
 
     try:
         repos_response = requests.get(repos_url)
         if repos_response.status_code != 200:
-            flash(f"GitHub user '{github_username}' not found.", "error")
-            logger.warning(f"GitHub user '{github_username}' not found. Status: {repos_response.status_code}")
-            return []
+            msg = f"GitHub user '{github_username}' not found."
+            logger.warning(msg)
+            return [], msg
 
         repos = repos_response.json()
         if not isinstance(repos, list):
-            flash("Unexpected response from GitHub.", "error")
-            logger.error("Unexpected response format from GitHub API.")
-            return []
+            msg = "Unexpected response from GitHub."
+            logger.error(msg)
+            return [], msg
 
         projects = []
         for repo in repos:
@@ -217,15 +228,14 @@ def get_user_projects_with_readmes(github_username):
                 "readme": content.strip()
             })
 
-        flash(f"Fetched {len(projects)} project(s) for '{github_username}'.", "success")
-        return projects
+        return projects, f"Fetched {len(projects)} project(s) for '{github_username}'."
 
     except Exception as e:
-        flash("An error occurred while fetching GitHub data.", "error")
-        logger.error(f"GitHub fetch error for user '{github_username}': {e}")
-        return []
+        msg = "An error occurred while fetching GitHub data."
+        logger.error(f"{msg} GitHub fetch error for user '{github_username}': {e}")
+        return [], msg
     
-def compare_social_to_database(user_details, user_github_repo):
+def compare_social_to_database(user_details, user_github_repo, state: dict):
     prompt_template = ChatPromptTemplate.from_messages([
         ("system", 
          "You are a user detail perfector using the user's database details and github repositories.\n"
@@ -260,6 +270,8 @@ def compare_social_to_database(user_details, user_github_repo):
     
     except Exception as e:
         logger.error(f"LLM comparison failed: {e}")
+        if "quota" in str(e).lower() or "limit" in str(e).lower():
+            state["llm_limit_exceeded"] = True
         return False
 
 def each_link_extractor(link):
@@ -345,7 +357,7 @@ def each_link_extractor(link):
         logger.error(f"Job link extraction failed: {e}")
         return {}
 
-def matches_user(job_data: dict, user_details: dict) -> bool:
+def matches_user(job_data: dict, user_details: dict, state: dict) -> bool:
     prompt_template = ChatPromptTemplate.from_messages([
         ("system",
         "You are a job matcher.\n"
@@ -405,7 +417,7 @@ def matches_user(job_data: dict, user_details: dict) -> bool:
 
         # Ensure it's a valid Python boolean
         if result == "false":
-            print("This user is not eligible")
+            print("\n\nThis user is not eligible\n\n")
             return False, {}
         
         elif result.startswith("true"):
@@ -428,16 +440,44 @@ def matches_user(job_data: dict, user_details: dict) -> bool:
 
     except Exception as e:
         logger.error(f"LLM match error: {e}")
+        if "quota" in str(e).lower() or "limit" in str(e).lower():
+            state["llm_limit_exceeded"] = True
         return False, {} 
     
-def linkedin_scraper(webpage_base, user_details, user_id, delay=3, max_retries=3):
+def linkedin_scraper(webpage_base, user_details, user_id, delay=3, state=None, max_empty_pages=2):
     page = 0
+    empty_page_count = 0  # To count how many empty pages we hit
+    max_failed_matches = 10
+    failed_matches = 0
+
+    if state is None:
+        state = {}
+
+    # === Limit the number of jobs per user to 2 ===
+    db = next(get_db())
+    try:
+        user_job_count = db.query(JobRecommendation).filter_by(user_id=user_id).count()
+        if user_job_count >= 2:
+            logger.info(f"User {user_id} already has {user_job_count} jobs saved. Skipping scraping.")
+            state["user_max_jobs_reached"] = True  # flag for frontend message
+            return False
+        
+    except Exception as e:
+        logger.error(f"Failed to count user jobs: {e}")
+        return False
+    finally:
+        db.close()
 
     while True:
         url = f"{webpage_base}{page}"
         logger.info(f"Scraping: {url}")
 
-        response = requests.get(url, headers=get_headers(), timeout=2)
+        try:
+            response = requests.get(url, headers=get_headers(), timeout=2)
+        except Exception as e:
+            logger.warning(f"Request failed: {e}")
+            page += 25
+            continue
 
         soup = BeautifulSoup(response.content, 'html.parser')
         jobs = soup.find_all(
@@ -446,8 +486,16 @@ def linkedin_scraper(webpage_base, user_details, user_id, delay=3, max_retries=3
         )
 
         if not jobs:
-            logger.info("No jobs found. Done scraping.")
-            break
+            empty_page_count += 1
+            logger.info(f"No jobs found on page {page}. Consecutive empty pages: {empty_page_count}")
+            if empty_page_count >= max_empty_pages:
+                logger.info("Too many empty pages. Ending scraping.")
+                break
+            page += 25  # Go to next page and try again
+            time.sleep(delay + random.uniform(0, 2))
+            continue
+
+        empty_page_count = 0  # Reset on a successful page
 
         db = next(get_db())
 
@@ -456,17 +504,34 @@ def linkedin_scraper(webpage_base, user_details, user_id, delay=3, max_retries=3
                 job_link = job.find('a', class_='base-card__full-link')['href']
                 job_details = each_link_extractor(job_link)
 
+                if state.get("llm_limit_exceeded"):
+                    logger.warning("LLM limit hit. Stopping further matching.")
+                    break
 
+                # === Check DB job count here ===
+                job_count = db.query(JobRecommendation).filter_by(user_id=user_id).count()
+                if job_count >= 2:
+                    logger.info(f"User {user_id} already has 2 job recommendations. Stopping.")
+                    state["user_max_jobs_reached"] = True  # Optional flag if you want to notify
+                    break
 
+                # Hash based deduplication
+                job_hash = generate_job_hash(
+                    job_details.get("title", ""),
+                    job_details.get("company", ""),
+                    job_details.get("location", ""),
+                    job_details.get("description", "")
+                )
 
-                '''
-                COMPARE THE JOB DETAILS TO THE BACKEND HERE BEFORE DECIDING TO CONTINUE WITH THE LINK OR MOVING ON TO THE NEXT LINK
-                '''
+                existing_job = db.query(JobRecommendation).filter(
+                    (JobRecommendation.url == job_link) | (JobRecommendation.job_hash == job_hash)
+                ).first()
 
+                if existing_job:
+                    print(f"[SKIP] Job already exists in DB: {job_link}")
+                    continue  # Skip this job
 
-
-
-                is_match, matched_info = matches_user(job_details, user_details)
+                is_match, matched_info = matches_user(job_details, user_details, state)
 
                 if is_match:
                     new_job = JobRecommendation(
@@ -481,74 +546,122 @@ def linkedin_scraper(webpage_base, user_details, user_id, delay=3, max_retries=3
                         posted=job_details.get("posted", ""),
                         description=job_details.get("description", ""),
                         url=job_link,
-                        deadline=matched_info.get("deadline", "")
+                        deadline=matched_info.get("deadline", ""),
+                        job_hash=job_hash
                     )
                     db.add(new_job)
                     db.commit()
                     print(f"[SUCCESS], one job saved to DB.")
                 else:
                     print(f"Job not matched. Skipping.")
+                    failed_matches += 1
+
+                    if failed_matches >= max_failed_matches:
+                        logger.warning("Too many unmatched jobs. Aborting scraping early.")
+                        state["too_many_failed_matches"] = True
+                        break
+            
         except Exception as e:
             logger.exception(f"Scraping failed: {e}")
         finally:
             db.close()
 
-        
-        # page += 25  # LinkedIn paginates by 25
-        time.sleep(delay + random.uniform(0, 2))  # Respectful scraping with jitter
+        if state.get("llm_limit_exceeded"):
+            logger.warning("LLM limit exceeded. Stopping scraper.")
+            break
+
+        if state.get("too_many_failed_matches"):
+            logger.warning("User details do not match any job across multiple listings. Aborting.")
+            break
+
+        if state.get("user_max_jobs_reached"):
+            logger.info("User has reached the 2-job limit. Ending all scraping.")
+            break  # This breaks the while pagination loop
+
+        page += 25  # Go to next LinkedIn page
+        time.sleep(delay + random.uniform(0, 2))
 
     return True
 
+
+# Declared before the function to check when LLMs exceed their limits
+llm_limit_exceeded = False
 
 def get_perfected_user_details(user_id):
+    # Check when llm limits are exceeded and display messages (error or success)
+    messages = []
+    state = {"llm_limit_exceeded": False}
+
+    # === Add 2-job limit check here ===
+    db = next(get_db())
     try:
-        # Step 1: Fetch user preferences from DB
+        job_count = db.query(JobRecommendation).filter_by(user_id=user_id).count()
+        if job_count >=2:
+            msg = "✅ You already have 2 job recommendations. This project is for demo purposes only."
+            messages.append(msg)
+            logger.info(msg)
+            return {"success": True, "messages": messages}
+    
+    except Exception as e:
+        logger.error(f"Job count check failed: {e}")
+        return {"success": False, "messages": [f"DB error during job count: {e}"]}
+    
+    finally:
+        db.close()
+
+    try:
         user_preferences = get_user_preferences(user_id)
         if not user_preferences:
-            print(f"[ERROR] No user found with ID: {user_id}")
-            return
+            return {"success": False, "message": "No user preferences found."}
 
-        # Step 2: Extract GitHub username
         github_url = user_preferences.get("github")
-        if not github_url:
-            print("[ERROR] No GitHub URL in user preferences.")
-            return
-        
-        github_username = github_url.split("/")[-1]
-        user_github_repo = get_user_projects_with_readmes(github_username)
+        github_username = github_url.split("/")[-1] if github_url else ""
+        user_github_repo, github_message = get_user_projects_with_readmes(github_username)
 
-        if not user_github_repo:
-            flash ("Invalid Username or Empty readme", "error")
-            return
+        if github_message:
+            messages.append(github_message)
 
-        # Step 3: Merge GitHub + DB info using LLM
-        user_full_details = compare_social_to_database(user_preferences, user_github_repo)
+        # Even if user_github_repo is empty, continue...
+        user_full_details = compare_social_to_database(user_preferences, user_github_repo, state)
         if not user_full_details:
-            print("[ERROR] LLM failed to generate full user details.")
-            return
+            messages.append("LLM failed to generate full user details.")
+            user_full_details = {}  # Avoid crash, continue with empty details
 
-        # Step 4: Build LinkedIn URLs
-        linkedin_urls = generate_linkedin_urls(user_preferences)
+        linkedin_urls = generate_linkedin_urls(user_preferences, state)
         if not linkedin_urls:
-            print("[ERROR] No LinkedIn urls generated.")
-            return
+            messages.append("No LinkedIn URLs generated.")
+            linkedin_urls = [] 
 
-
-
-        # To be removed later, just here for now to reduce the limit sent to LLM
-        linkedin_urls = linkedin_urls[::3]
-
-
-
-
-        # Step 5: Scrape all jobs in linkedin_urls
         for link in linkedin_urls:
-            linkedin_scraper(link, user_full_details, user_id)
+            if state.get("llm_limit_exceeded"):
+                break
+
+            linkedin_scraper(link, user_full_details, user_id, state=state)
+
+            # === If user consistently fails to match jobs ===
+            if state.get("too_many_failed_matches"):
+                messages.append(
+                    "⚠️ Your profile did not match any job listings. "
+                    "This is likely because your skills, experience, or projects "
+                    "do not align with the level of roles you selected.\n\n"
+                    "➡️ Tip: Try adjusting your preferences — "
+                    "select a lower experience level, junior-friendly job titles, or broader work types."
+                )
+                break
+
+        if state.get("llm_limit_exceeded"):
+            messages.append("LLM usage limit exceeded. Please try again in a few hours.")
+
+        if state.get("user_max_jobs_reached"):
+            messages.append("⚠️ This is a test version. Only 2 job recommendations per user are allowed.")
+
+        if not messages:
+            messages.append("Job scraping completed successfully.")
+
+        return {"success": True, "messages": messages}
 
     except Exception as e:
-        print(f"[FATAL ERROR] get_perfected_user_details failed: {e}")
-
-    return True
+        return {"success": False, "messages": [f"Fatal error: {e}"]}
 
 
 

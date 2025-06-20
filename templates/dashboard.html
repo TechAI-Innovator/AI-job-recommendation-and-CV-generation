@@ -15,6 +15,17 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- To display error messages from JS -->
+    <style>
+        @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-4px); }
+        to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+        animation: fadeIn 0.4s ease-in-out;
+        }
+    </style>
 </head>
 <body>
     <header class="header">
@@ -43,6 +54,11 @@
 
 
         <section class="mb-12">
+            <div class="text-center my-4">
+                <button id="startButton" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition-transform transform hover:scale-105">
+                    Start Scraping
+                </button>
+            </div>
             {% if job_details %}
             <div class="mb-4 flex items-center justify-between">
                 <h3 class="text-xl font-semibold">Featured Jobs</h3>
@@ -126,14 +142,10 @@
             <div style="text-align: center;">
                 <div class="welcm-msg">click on the "Start Scraping" button now to locate your dream jobs</div>
             </div>
-            
-            <div class="text-center my-4">
-                <button id="startButton" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition-transform transform hover:scale-105">
-                    Start Scraping
-                </button>
-            </div>
-
             {% endif %}
+            
+            <!-- inline Notification to display error message -->
+            <div id="inline-message" class="hidden w-full max-w-2xl mx-auto mt-4 p-4 rounded-lg border text-sm font-medium"></div>
         </section>
 
 

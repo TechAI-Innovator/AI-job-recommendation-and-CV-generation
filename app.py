@@ -69,7 +69,7 @@ def dashboard():
 def scrape_jobs():
     user_id = current_user.id
     result = get_perfected_user_details(user_id)
-    return result
+    return jsonify(result)
 
 @app.route("/cv-generator")
 @login_required
@@ -374,4 +374,4 @@ migrate = Migrate(app, Base, engine)
 
 if __name__ == "__main__":
     init_db_if_needed()
-    app.run()
+    app.run(debug=True)

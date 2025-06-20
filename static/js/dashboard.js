@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     stars.forEach((star, index) => {
         star.addEventListener('click', () => {
-            selectedRating = index + 1;  // now rating is 1 to 5
+            selectedRating = index + 1;
             updateStars();
         });
 
@@ -110,6 +110,35 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function showInlineMessage(messages, type = 'success') {
+        const box = document.getElementById('inline-message');
+
+        // Support both string and array
+        if (typeof messages === 'string') {
+            box.innerHTML = `<div>${messages}</div>`;
+        } else if (Array.isArray(messages)) {
+            box.innerHTML = messages.map(msg => `<div class="mb-1">${msg}</div>`).join('');
+        }
+
+        box.classList.remove('hidden');
+        box.classList.remove('bg-green-100', 'text-green-800', 'border-green-300');
+        box.classList.remove('bg-red-100', 'text-red-800', 'border-red-300');
+
+        if (type === 'success') {
+            box.classList.add('bg-green-100', 'text-green-800', 'border-green-300');
+        } else {
+            box.classList.add('bg-red-100', 'text-red-800', 'border-red-300');
+        }
+
+        box.classList.add('border', 'rounded-lg', 'p-4', 'mt-2', 'animate-fade-in');
+
+        // Optional auto-hide after 6 seconds
+        setTimeout(() => {
+            box.classList.add('hidden');
+        }, 8000);
+    }
+
+
     if (startButton) {
         startButton.addEventListener('click', async function () {
             setStartButtonState('loading');
@@ -122,15 +151,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 });
 
-                if (!response.ok) throw new Error("Scraping failed");
-
                 const data = await response.json();
                 console.log(data);
-                setStartButtonState('done');
+
+                const messages = data.messages || [data.message || 'Unknown status.'];
+                showInlineMessage(messages, data.success ? 'success' : 'error');
+
+                setStartButtonState(data.success ? 'done' : 'error');
                 container?.scrollIntoView({ behavior: 'smooth' });
 
             } catch (error) {
                 console.error(error);
+                showInlineMessage("Something went wrong while scraping.", 'error');
                 setStartButtonState('error');
             } finally {
                 setTimeout(() => {
@@ -139,4 +171,5 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
 });
