@@ -16,7 +16,7 @@ import os
 from dotenv import load_dotenv
 from job_scrapper import get_perfected_user_details, get_job_recommendation_details, get_perfected_user_details
 from cv_generator import (generate_cv_with_llm, convert_text_to_pdf,
-                          get_user_full_details)
+                          get_user_full_details, convert_text_to_docx)
 from io import BytesIO
 
 load_dotenv()
@@ -71,9 +71,9 @@ def scrape_jobs():
     result = get_perfected_user_details(user_id)
     return jsonify(result)
 
-@app.route("/cv-generator")
+@app.route("/cv-generator/<int:job_id>")
 @login_required
-def cv_generator():
+def cv_generator(job_id):
     return render_template("CV_generator.html")
 
 @app.route("/api/generate-initial-format-cv/<int:job_id>", methods=["GET"])
@@ -86,7 +86,9 @@ def generate_initial_format_cv(job_id):
     if not job:
         return abort(404, description="Job not found")
     
-    user_details = get_user_full_details(current_user.id)
+    user_details, issues = get_user_full_details(current_user.id)
+    if issues:
+        return jsonify({"success": False, "messages": issues}), 400
 
     db = next(get_db())
     user_cv_record = db.query(CV).filter_by(user_id=current_user.id).first()
@@ -104,12 +106,15 @@ def generate_initial_format_cv(job_id):
     generated_cv_text = generate_cv_with_llm(llm_input, follow_format=True)
 
     if not generated_cv_text:
-        return abort(500, description="CV generation failed. Please try again later.")
+        return jsonify({"success": False, "messages": ["CV generation failed. Try again later."]}), 500
 
     pdf_bytes = convert_text_to_pdf(generated_cv_text)
 
     # Convert generated CV text to PDF bytes
     pdf_bytes = convert_text_to_pdf(generated_cv_text)
+
+    # Use this instead
+    docx_bytes = convert_text_to_docx(generated_cv_text)
 
     return send_file(
         BytesIO(pdf_bytes),
@@ -117,6 +122,15 @@ def generate_initial_format_cv(job_id):
         as_attachment=False,
         download_name=f'cv_initial_format_{job_id}.pdf'
     )
+
+    # If I want it to be downloaded as a word document
+    # return send_file(
+    #     BytesIO(docx_bytes),
+    #     mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    #     as_attachment=True,
+    #     download_name=f'generated_cv_{job_id}.docx'
+    # )
+
 
 
 @app.route("/api/generate-llm-format-cv/<int:job_id>", methods=["GET"])
@@ -131,7 +145,9 @@ def generate_llm_format_cv(job_id):
     if not job:
         return abort(404, description="Job not found")
     
-    user_details = get_user_full_details(current_user.id)
+    user_details, issues = get_user_full_details(current_user.id)
+    if issues:
+        return jsonify({"success": False, "messages": issues}), 400
 
     llm_input = {
         "user_details": user_details,
@@ -141,17 +157,28 @@ def generate_llm_format_cv(job_id):
     generated_cv_text = generate_cv_with_llm(llm_input, follow_format=False)
 
     if not generated_cv_text:
-        return abort(500, description="CV generation failed. Please try again later.")
+        return jsonify({"success": False, "messages": ["CV generation failed. Try again later."]}), 500
 
     # Convert generated CV text to PDF bytes
     pdf_bytes = convert_text_to_pdf(generated_cv_text)
+
+    # Use this instead
+    docx_bytes = convert_text_to_docx(generated_cv_text)
 
     return send_file(
         BytesIO(pdf_bytes),
         mimetype='application/pdf',
         as_attachment=False,
-        download_name=f'cv_llm_format_{job_id}.pdf'
+        download_name=f'cv_initial_format_{job_id}.pdf'
     )
+
+    # If I want it to be downloaded as a word document
+    # return send_file(
+    #     BytesIO(docx_bytes),
+    #     mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    #     as_attachment=True,
+    #     download_name=f'generated_cv_{job_id}.docx'
+    # )
 
 
 @app.route("/profile", methods=["GET", "POST"])

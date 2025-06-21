@@ -20,8 +20,10 @@ function generateCV(type) {
     fetch(endpoint)
         .then(response => {
             if (!response.ok) {
-                throw new Error("Failed to generate CV.");
-            }
+            return response.json().then(data => {
+                throw new Error(data.messages?.join("\n") || "Failed to generate CV.");
+            });
+        }
             return response.blob();
         })
         .then(blob => {
@@ -36,7 +38,7 @@ function generateCV(type) {
         })
         .catch(error => {
             console.error("CV Generation Error:", error);
-            alert("Something went wrong while generating the CV.");
+            alert(error.message);
             resetGenerator();
         });
 }

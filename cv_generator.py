@@ -1,9 +1,16 @@
-from job_scrapper import (compare_social_to_database, get_user_preferences,
+from job_scrapper import (compare_social_to_database,
+                          get_user_preferences,
                           get_user_projects_with_readmes)
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import (Paragraph, SimpleDocTemplate,
+                                Spacer, ListFlowable, ListItem)
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus.flowables import HRFlowable
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
+
+from docx import Document
+from docx.shared import Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+
 from io import BytesIO
 from langchain.schema.output_parser import StrOutputParser
 from langchain_core.runnables import Runnable
@@ -25,35 +32,38 @@ cv_generator_llm = ChatGroq(
 )
 
 def get_user_full_details(user_id):
+    messages = []
+    state = {"llm_limit_exceeded": False}
+
     user_preferences = get_user_preferences(user_id)
     if not user_preferences:
-        print("[ERROR] User preferences not found.")
-        return None
+        messages.append("User preferences not found.")
+        return None, messages
 
     github_url = user_preferences.get("github")
     if not github_url:
-        print("[ERROR] No GitHub URL in user preferences.")
-        return user_preferences  # fallback to just using preferences
+        messages.append("GitHub URL not provided.")
+        return user_preferences, messages
 
     github_username = github_url.split("/")[-1].strip()
     if not github_username:
-        print("[ERROR] Invalid GitHub URL.")
-        return user_preferences  # fallback
+        messages.append("Invalid GitHub URL.")
+        return user_preferences, messages
 
     user_github_repo = get_user_projects_with_readmes(github_username)
 
-    full_details = compare_social_to_database(user_preferences, user_github_repo)
+    full_details = compare_social_to_database(user_preferences, user_github_repo, state)
     if not full_details:
-        print("[ERROR] Failed to merge user details and GitHub projects.")
-        return user_preferences  # fallback to user_preferences only
+        messages.append("Failed to merge GitHub data with user profile.")
+        return user_preferences, messages
 
-    return full_details
+    return full_details, messages
 
 
 def generate_cv_with_llm(data, follow_format=False):
     prompt_template = ChatPromptTemplate.from_messages([
         ("system",
-        "You are a professional CV generator.\n\n"
+        "You are a professional ATS-friendly CV generator.\n\n"
         "Instructions:\n"
         "1. If `follow_format` is True:\n"
         "   - Follow the original CV structure provided in `initial_cv_content`.\n"
@@ -90,12 +100,95 @@ def convert_text_to_pdf(text):
                             topMargin=40, bottomMargin=40)
 
     styles = getSampleStyleSheet()
-    flowables = []
+    
+    # Custom styles
+    styles.add(ParagraphStyle(name='Header', fontSize=14, leading=16, spaceAfter=10, spaceBefore=12, alignment=TA_LEFT, fontName='Helvetica-Bold'))
+    styles.add(ParagraphStyle(name='ListItem', leftIndent=15, bulletIndent=5, spaceAfter=5, fontSize=10))
 
-    for paragraph in text.split('\n\n'):  # detect paragraphs
-        flowables.append(Paragraph(paragraph.strip(), styles["Normal"]))
-        flowables.append(Spacer(1, 10))  # space between paragraphs
+    flowables = []
+    paragraphs = text.strip().split("\n")
+
+    bullet_items = []
+
+    for line in paragraphs:
+        line = line.strip()
+
+        if not line:
+            continue  # skip empty lines
+
+        # Detect headers like "# Summary"
+        if line.startswith("#"):
+            # Flush any previous bullet list before header
+            if bullet_items:
+                flowables.append(ListFlowable(bullet_items, bulletType='bullet', start='circle'))
+                flowables.append(Spacer(1, 8))
+                bullet_items = []
+
+            header_text = line.lstrip("#").strip()
+            flowables.append(Paragraph(header_text, styles['Header']))
+
+        # Detect bullet list items like "- Python"
+        elif line.startswith("- "):
+            bullet_text = line[2:].strip()
+            bullet_items.append(ListItem(Paragraph(bullet_text, styles["ListItem"])))
+
+        else:
+            # Flush any bullet items first
+            if bullet_items:
+                flowables.append(ListFlowable(bullet_items, bulletType='bullet', start='circle'))
+                flowables.append(Spacer(1, 8))
+                bullet_items = []
+
+            flowables.append(Paragraph(line, styles["Normal"]))
+            flowables.append(Spacer(1, 6))
+
+    # Final bullet list (if any)
+    if bullet_items:
+        flowables.append(ListFlowable(bullet_items, bulletType='bullet', start='circle'))
 
     doc.build(flowables)
     return buffer.getvalue()
 
+
+def convert_text_to_docx(text):
+    doc = Document()
+    buffer = BytesIO()
+
+    # Define basic styles
+    style = doc.styles['Normal']
+    font = style.font
+    font.name = 'Calibri'
+    font.size = Pt(11)
+
+    lines = text.strip().split('\n')
+    in_list = False
+
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+
+        # Section Headers
+        if line.startswith('#'):
+            if in_list:
+                in_list = False  # End bullet list
+
+            heading = line.lstrip('#').strip()
+            para = doc.add_paragraph(heading)
+            para.style = 'Heading 2'
+            para.alignment = WD_ALIGN_PARAGRAPH.LEFT
+
+        # Bullet points
+        elif line.startswith('- '):
+            doc.add_paragraph(line[2:].strip(), style='List Bullet')
+            in_list = True
+
+        # Regular paragraph
+        else:
+            if in_list:
+                in_list = False  # End bullet list
+            doc.add_paragraph(line)
+
+    doc.save(buffer)
+    buffer.seek(0)
+    return buffer.getvalue()
