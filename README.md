@@ -30,7 +30,8 @@ An AI-powered job platform that helps job seekers **find better jobs faster** by
   Easily update personal details, education, experience, and job preferences.
 
 - 🌐 **Live Job Scraping**  
-  Scrapes job boards like **LinkedIn**, **Indeed**, and **Jobberman** using real-time filters based on user preferences.
+  Scrapes job boards like **LinkedIn**, **Indeed**, and **Jobberman** 
+  (Indeed and Jobberman yet to be introduced) using real-time filters based on user preferences.
 
 - 📎 **Download Tailored CVs**  
   Get a ready-to-send, optimized CV for every recommended job — tailored to the job’s requirements.
@@ -100,17 +101,17 @@ An AI-powered job platform that helps job seekers **find better jobs faster** by
 ## 👤 Author
 
 **Ayomide Oluwanifesimi**  
-🧑‍💻 Full Stack Developer | AI Developer
-📧 Email: your.email@example.com  
-🔗 LinkedIn: [linkedin.com/in/yourprofile](https://linkedin.com/in/yourprofile)  
-🐙 GitHub: [github.com/yourusername](https://github.com/yourusername)
+🧑‍💻 Full Stack Developer | AI Developer | Data Analyst
+📧 Email: aduayomide5@gmail.com 
+🔗 LinkedIn: [linkedin.com/in/techai-innovator](https://linkedin.com/in/linkedin.com/in/techai-innovator)  
+🐙 GitHub: [github.com/yourusername](https://github.com/linkedin.com/in/techai-innovator)
 
 ---
 
 ## 🛡️ Project Status
 
 - ✅ MVP completed
-- 🧠 LLM logic + job matching live
+- 🧠 LLM logic + job matching live + CV generation
 - 🧪 Currently running in **testing mode** (limited scraping & AI quota)
 
 ---
