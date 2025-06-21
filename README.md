@@ -8,7 +8,7 @@ An AI-powered job platform that helps job seekers **find better jobs faster** by
 [![Watch Video](assets/video-thumbnail.jpg)](https://your-video-link.com)
 
 🌐 **Live Demo**  
-👉 [https://ai-job-recommendation-and-cv-generation.onrender.com](https://ai-job-recommendation-and-cv-generation.onrender.com)
+👉 [https://ai-job-recommendation-and-cv-generation-f1dc.onrender.com](https://ai-job-recommendation-and-cv-generation-f1dc.onrender.com)
 
 **💤 Note on Hosting (Render Free Tier)**
 This project is deployed on Render using the free tier, which means the server "sleeps" after 15 minutes of inactivity.

@@ -4,3 +4,4 @@ venv
 __pycache__
 alembic.ini
 migrations
+requirements.txt
