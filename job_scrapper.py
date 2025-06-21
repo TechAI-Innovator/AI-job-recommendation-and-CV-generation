@@ -449,6 +449,9 @@ def linkedin_scraper(webpage_base, user_details, user_id, delay=3, state=None, m
     empty_page_count = 0  # To count how many empty pages we hit
     max_failed_matches = 10
     failed_matches = 0
+    no_save_count = 0
+    max_no_save_pages = 3  # You can tune this
+
 
     if state is None:
         state = {}
@@ -471,6 +474,8 @@ def linkedin_scraper(webpage_base, user_details, user_id, delay=3, state=None, m
     while True:
         url = f"{webpage_base}{page}"
         logger.info(f"Scraping: {url}")
+
+        jobs_saved_this_page = 0
 
         try:
             response = requests.get(url, headers=get_headers(), timeout=2)
@@ -552,6 +557,7 @@ def linkedin_scraper(webpage_base, user_details, user_id, delay=3, state=None, m
                     db.add(new_job)
                     db.commit()
                     print(f"[SUCCESS], one job saved to DB.")
+                    
                 else:
                     print(f"Job not matched. Skipping.")
                     failed_matches += 1
@@ -560,6 +566,16 @@ def linkedin_scraper(webpage_base, user_details, user_id, delay=3, state=None, m
                         logger.warning("Too many unmatched jobs. Aborting scraping early.")
                         state["too_many_failed_matches"] = True
                         break
+                
+                if jobs_saved_this_page == 0:
+                    no_save_count += 1
+                    logger.info(f"No jobs saved on page {page}. Consecutive no-save pages: {no_save_count}")
+                    if no_save_count >= max_no_save_pages:
+                        logger.info("Too many pages without any saved jobs. Stopping scraping.")
+                        break
+                else:
+                    no_save_count = 0  # Reset when a job is saved
+
             
         except Exception as e:
             logger.exception(f"Scraping failed: {e}")
