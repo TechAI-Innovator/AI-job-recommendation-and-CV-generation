@@ -7,6 +7,9 @@ An AI-powered job platform that helps job seekers **find better jobs faster** by
 🎥 **Watch How It Works**  
 [![Watch Video](assets/video-thumbnail.jpg)](https://your-video-link.com)
 
+🌐 **Live Demo**  
+👉 [https://ai-job-recommendation-and-cv-generation.onrender.com](https://ai-job-recommendation-and-cv-generation.onrender.com)
+
 ---
 
 ## 🚀 Features
@@ -34,7 +37,32 @@ An AI-powered job platform that helps job seekers **find better jobs faster** by
 
 ---
 
-## 🧠 Tech Stack
+## 🧠 Advanced Logic
+
+- ⚠️ **LLM Quota Awareness**  
+  Detects and handles AI model rate limits. Informs users and pauses scraping/generation if the limit is exceeded.
+
+- 🔁 **Duplicate Job Prevention**  
+  Prevents saving duplicate jobs by checking:
+  - Job URLs
+  - Content hashes (title, company, location, description)
+
+- 🧪 **Testing Limit for Users**  
+  Users can only receive a maximum of **2 job recommendations**.  
+  > “This system is currently in testing mode and not deployed for large-scale use.”
+
+- ❌ **Incomplete Input Handling**  
+  Gracefully alerts users if they’ve skipped required fields like preferred job titles or location.
+
+---
+
+## 🧪 Use Case
+
+> "A recent graduate uploads their resume, sets preferences for job roles, and receives a curated list of job links where their **skills, experience, and career goals match the job descriptions** — along with **automatically generated, tailored CVs** — all in minutes."
+
+---
+
+## 🧰 Tech Stack
 
 | Layer      | Tech                                 |
 |------------|--------------------------------------|
@@ -48,35 +76,45 @@ An AI-powered job platform that helps job seekers **find better jobs faster** by
 
 ---
 
-## 📌 Use Case
+## 📂 Folder Structure
 
-> "A recent graduate uploads their resume, sets preferences for job roles, and receives a curated list of job links where their **skills, experience, and career goals match the job descriptions** — along with **automatically generated, tailored CVs** — all in minutes."
+├── app.py # Main Flask application
+├── auth.py # Authentication logic
+├── cv_handler.py # CV parsing and generation
+├── db.py # DB connection & helpers
+├── engine.py # Scraping and matching logic
+├── models.py # SQLAlchemy models
+├── utils.py # Utility functions
+├── requirements.txt # Dependencies
+├── alembic.ini # Alembic config
+├── LICENSE
+├── README.md
+├── .gitattributes
+│
+├── migrations/ # Alembic files
+├── static/ # CSS, JS, assets
+└── templates/ # Jinja2 templates
+
+---
+
+## 👤 Author
+
+**Ayomide Oluwanifesimi**  
+🧑‍💻 Full Stack Developer | AI Developer
+📧 Email: your.email@example.com  
+🔗 LinkedIn: [linkedin.com/in/yourprofile](https://linkedin.com/in/yourprofile)  
+🐙 GitHub: [github.com/yourusername](https://github.com/yourusername)
 
 ---
 
 ## 🛡️ Project Status
 
-- ✅ MVP in progress  
-- 🛠️ Scraping + Matching Logic Under Development  
-- 🔐 Login & Profile Sync Coming Soon
+- ✅ MVP completed
+- 🧠 LLM logic + job matching live
+- 🧪 Currently running in **testing mode** (limited scraping & AI quota)
 
 ---
 
-## 📂 Folder Structure
+## 📃 License
 
-├── app.py # Main Flask application
-├── auth.py # Authentication routes and logic
-├── cv_handler.py # CV parsing and generation logic
-├── db.py # Database connection and helpers
-├── engine.py # Job scraping and matching engine
-├── models.py # SQLAlchemy models
-├── utils.py # Utility functions
-├── requirements.txt # Python dependencies
-├── alembic.ini # Alembic migration config
-├── LICENSE
-├── README.md
-├── .gitattributes
-│
-├── migrations/ # Alembic migration files
-├── static/ # Static frontend files (CSS, JS, images, uploads)
-└── templates/ # HTML templates (Jinja2)
+This project is licensed under the MIT License.
